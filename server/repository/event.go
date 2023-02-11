@@ -23,6 +23,7 @@ func (e *UserEvent) ToUser() *domain.User {
 		DisplayName: e.DisplayName,
 		About:       e.About,
 		Picture:     e.Picture,
+		Banner:      e.Banner,
 		Website:     e.Website,
 	}
 }

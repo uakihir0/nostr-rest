@@ -3,12 +3,18 @@ package repository
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/samber/lo"
 	"github.com/uakihir0/nostr-rest/server/domain"
+)
+
+var (
+	once     sync.Once
+	instance *RelayUserRepository
 )
 
 type UserEventCache struct {
@@ -25,14 +31,17 @@ var _ domain.UserRepository = (*RelayUserRepository)(nil)
 // NewRelayUserRepository
 // Create a new relay user repository
 func NewRelayUserRepository() *RelayUserRepository {
-	cache, err := lru.New[domain.UserPubKey, *UserEventCache](200)
-	if err != nil {
-		panic("Error on NewRelayUserRepository Init")
-	}
+	once.Do(func() {
+		cache, err := lru.New[domain.UserPubKey, *UserEventCache](200)
+		if err != nil {
+			panic("Error on NewRelayUserRepository Init")
+		}
 
-	return &RelayUserRepository{
-		Cache: cache,
-	}
+		instance = &RelayUserRepository{
+			Cache: cache,
+		}
+	})
+	return instance
 }
 
 // GetUserFromCache

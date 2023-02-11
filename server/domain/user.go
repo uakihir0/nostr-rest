@@ -9,6 +9,7 @@ type User struct {
 	DisplayName string
 	About       string
 	Picture     string
+	Banner      string
 	Website     string
 }
 

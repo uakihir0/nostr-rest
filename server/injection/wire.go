@@ -5,10 +5,10 @@ package injection
 
 import (
 	"github.com/google/wire"
-	"github.com/uakihir0/nostr-rest/server/domain"
+	"github.com/uakihir0/nostr-rest/server/service"
 )
 
-func UserRepository() *domain.UserRepository {
+func UserService() *service.UserService {
 	wire.Build(bindSet)
 	return nil
 }

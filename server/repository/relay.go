@@ -5,6 +5,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/samber/lo"
 	"sort"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -85,12 +86,20 @@ func QuerySyncAllWithGuard(
 	channel := make(chan *nostr.Event)
 	events := make([]*nostr.Event, 0)
 
+	// Channel close mutex
+	var mu sync.Mutex
+	var isClosed = false
+
 	checkChannelClose := func() {
 		// Close channel if all subscriptions closed
 		atomic.AddInt32(&channelCounter, 1)
-		if channelCounter == int32(len(cs)) {
+
+		mu.Lock()
+		if !isClosed && channelCounter == int32(len(cs)) {
 			close(channel)
+			isClosed = true
 		}
+		mu.Unlock()
 	}
 
 	for _, c := range cs {
@@ -125,12 +134,15 @@ func QuerySyncAllWithGuard(
 	for ev := range channel {
 		events = append(events, ev)
 
-		if expectedEventCount > 0 {
+		mu.Lock()
+		if !isClosed && expectedEventCount > 0 {
 			// Early termination (got expected data)
 			if len(events) >= expectedEventCount {
 				close(channel)
+				isClosed = true
 			}
 		}
+		mu.Unlock()
 	}
 
 	// Sort in descending order of `CreatedAt`
