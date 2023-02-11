@@ -6,8 +6,7 @@ import (
 	"github.com/uakihir0/nostr-rest/server/openapi"
 )
 
-func ToUserResponse(user *domain.User) *openapi.User {
-
+func ToUser(user *domain.User) *openapi.User {
 	return &openapi.User{
 		Pubkey:      string(user.PubKey),
 		Name:        lo.ToPtr(user.Name),
@@ -20,11 +19,10 @@ func ToUserResponse(user *domain.User) *openapi.User {
 }
 
 func ToUsersResponse(users []*domain.User) *openapi.UsersResponse {
-
 	return &openapi.UsersResponse{
 		List: lo.Map(users,
 			func(u *domain.User, _ int) openapi.User {
-				return *ToUserResponse(u)
+				return *ToUser(u)
 			}),
 	}
 }

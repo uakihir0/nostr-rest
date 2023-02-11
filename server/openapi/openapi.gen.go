@@ -42,6 +42,9 @@ type User struct {
 	Website *string `json:"website,omitempty"`
 }
 
+// UserResponse defines model for UserResponse.
+type UserResponse = User
+
 // UsersResponse defines model for UsersResponse.
 type UsersResponse struct {
 	// User list
@@ -57,7 +60,7 @@ type UsersPubKeyRequest struct {
 // GetV1UsersParams defines parameters for GetV1Users.
 type GetV1UsersParams struct {
 	// Public key of the user to retrieve
-	Pubkeys []interface{} `form:"pubkeys" json:"pubkeys"`
+	Pubkey string `form:"pubkey" json:"pubkey"`
 }
 
 // PostV1UsersJSONRequestBody defines body for PostV1Users for application/json ContentType.
@@ -84,11 +87,11 @@ func (w *ServerInterfaceWrapper) GetV1Users(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetV1UsersParams
-	// ------------- Required query parameter "pubkeys" -------------
+	// ------------- Required query parameter "pubkey" -------------
 
-	err = runtime.BindQueryParameter("form", true, true, "pubkeys", ctx.QueryParams(), &params.Pubkeys)
+	err = runtime.BindQueryParameter("form", true, true, "pubkey", ctx.QueryParams(), &params.Pubkey)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter pubkeys: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter pubkey: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
@@ -141,19 +144,19 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7RVT2vrRhD/Ksu0hwSEZbeXh26vYIJpaI3t9JKaspLG9iTS7mZ35EQEf/eyK1lWEimF",
-	"PuKLtfN/fjP721fIdGm0QsUOklew+FSh4990ThgEdw6tW1bp71ivGp2XZloxqvApjSkok0xaxQ9OKy9z",
-	"2QFL6b+M1QYtt8FMlT5iHT5zdJkl490ggWWVFpSJR6yF3gk+oKgcWsFaWGRLeESIgBjL4FvKl1tUez5A",
-	"MptOIyhJdecIuDYICTi2pPZw6gTSWlnD6RSFJsliDsl9V9K2s9PpA2YMJ//zts5o5XpgrFrJD+BQUAPj",
-	"WxB8dBFUvV5/triDBH6KL3OKm7Au9g7/2WAIONRd9C79/EWWpkBx7jhEalOdm/f/2Ng5SO630bvGZKqr",
-	"sc76ooEppVKpJsGAr7F6RwWKxkhQKfcoKlsMBcrJmULW/yhZ4lgpjYkIJgMhPnEdczGUcWXHvCjT6vOq",
-	"mz0ca/9yPa7CxaAcFTHtCO31ULRnTB3xWDWtdriUwfsRFoi4wDYEDO4TqZ3+mPIP7diK1Xy9Ed+XC3Ej",
-	"GZ9lLdZoj2jFnwbV9+VibTCDCFxVltLWZ6/VfL1q7eFSwFm1uaiOaF2TbTaZegC0QSUNQQK/TrwoAiP5",
-	"EHY0Ps5iD2I47HFgXX0xtKtFWRVM/kpc8Hdip62QHT3plCWp5tguqZtAyG8DFyxySOAG+a9ZII9QiJUl",
-	"cijg/v8Robd8qtD61ptd7XisPz22FUY9Eirly6LhlTNtno8fOGT7jvl+mU7H2Kizi9/SY6CPbp43840I",
-	"erFsYQpbr90X4P+3uvKbNle50aRYuBCPMBekxKp74eqJuNpoIY+acnG3uhVFeEREQSVxGN719YdRLrXr",
-	"zfLyXNbj8PRe1HjgOT19FdQ9pINBuHBDS3erM+mZwPNBAgdmk8Rx4YUH7Tj5Nv02hdP29G8AAAD//3/N",
-	"nlgsCAAA",
+	"H4sIAAAAAAAC/5xVTW/iPBD+K9a876GVIgK7lyq3roQqtNUuArqXLlo5yQDTJrZrO7RRlf++shNCaJOi",
+	"LRfi8Xw+M/P4FRKZKylQWAPRK2h8KtDYbzIl9II7g9rMi/g7lov6zkkTKSwK/8mVyijhlqQIH4wUTmaS",
+	"HebcfSktFWrbOFNF/Iil/0zRJJqUM4MI5kWcUcIesWRyw+wOWWFQMyuZRqsJ9wgBkMXc2+b85RbF1u4g",
+	"mozHAeQk2nMAtlQIERirSWyhagVca15CVQW+SNKYQnTfprRu9WT8gImFyv2crlFSmCMYi0bwTzD8r3ED",
+	"EfwXHtEO61sTOqfgY51iMn3hucqQHTJwpfhufCqD00ZkVPfxNKLzzvxVB+zzqZ9B2Dvsg/d8wVXQVNCi",
+	"7/6x1jMQ3a+DN4XxWBZDlXVFPWMScyHqAD22SssNZchqJUY53yIrdNbnKCWjMl7+ETzHoVRqFeZVelx8",
+	"YDpkoiixhR6yokSKj7OuF2Go/ON+XvjNpBQFWdoQ6ss+b88YG7JD2TS3/an0LqgfILIZNi6gd55IbOT7",
+	"kD+ksZotpssVu57P2A23+MxLtkS9R81+KhTX89lSYQIBmCLPuS4PVovpctHowzGBw9XqeLVHbepok9HY",
+	"ASAVCq4IIvg6cqIAFLc7P6PhfhI6EP1hiz3j6pKhTdmB3WykZrxlRRlbTqI+NqM5Ah9UewKYpRDBDdpf",
+	"E88YPrrmOVof9f5z9Os0nwrUrt56QA/N6XbM6gKDDvHk/GVWc8mBqw/H951fv+HbL+PxEAW1euEJKXvK",
+	"aHt4M10xDwCb1yAZP+nSfIB5XmSWHA11wGdn0Tej3+LCTddUpEqSsMx4f4QpI8EW7bNajtjFSjK+l5Sy",
+	"u8Uty/zLxTLKyfreXV6+6+Rcmk4rj290OYxO5xkPe97w6rNImzNQd5D2Cn7J+mbuVibcbb/jgAh21qoo",
+	"DDMn3Eljo6vx1RiqdfU3AAD//0zTY+2hCAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

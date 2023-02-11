@@ -15,10 +15,9 @@ import (
 func (h *Handler) GetV1Users(c echo.Context, params openapi.GetV1UsersParams) error {
 	userService := injection.UserService()
 
-	pks := lo.Map(params.Pubkeys,
-		func(pk interface{}, _ int) domain.UserPubKey {
-			return domain.UserPubKey(pk.(string))
-		})
+	pks := []domain.UserPubKey{
+		domain.UserPubKey(params.Pubkey),
+	}
 
 	users, err := userService.GetUsers(pks)
 	if err != nil {
@@ -27,7 +26,7 @@ func (h *Handler) GetV1Users(c echo.Context, params openapi.GetV1UsersParams) er
 
 	return c.JSON(
 		http.StatusOK,
-		ToUsersResponse(users),
+		ToUser(users[0]),
 	)
 }
 

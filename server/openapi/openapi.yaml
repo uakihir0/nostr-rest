@@ -14,16 +14,16 @@ paths:
       tags: []
       responses:
         '200':
-          $ref: '#/components/responses/UsersResponse'
+          $ref: '#/components/responses/UserResponse'
       operationId: get-v1-users
-      description: Specify multiple public keys for a user to obtain user profiles.
+      description: Specify public keysfor a user to obtain user profile.
       parameters:
         - schema:
-            type: array
+            type: string
             minItems: 1
             maxItems: 100
           in: query
-          name: pubkeys
+          name: pubkey
           description: Public key of the user to retrieve
           required: true
     post:
@@ -99,3 +99,9 @@ components:
                   $ref: '#/components/schemas/User'
             required:
               - list
+    UserResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
