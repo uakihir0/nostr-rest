@@ -1,0 +1,101 @@
+openapi: 3.1.0
+info:
+  title: NostrRESTGateway
+  version: '1.0'
+  summary: NostrRESRGateway
+  description: Nostr REST API Gateway Server OpenAPISpec
+servers:
+  - url: 'http://localhost:8080'
+    description: Local
+paths:
+  /v1/users:
+    get:
+      summary: GET Users Profiles
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/UsersResponse'
+      operationId: get-v1-users
+      description: Specify multiple public keys for a user to obtain user profiles.
+      parameters:
+        - schema:
+            type: array
+            minItems: 1
+            maxItems: 100
+          in: query
+          name: pubkeys
+          description: Public key of the user to retrieve
+          required: true
+    post:
+      summary: GET User Profiles
+      operationId: post-v1-users
+      responses:
+        '200':
+          $ref: '#/components/responses/UsersResponse'
+      description: |-
+        Specify multiple public keys for a user to obtain user profiles.
+        (API Endpoint specified in RequestBody. (To avoid URL length limitation))
+      requestBody:
+        $ref: '#/components/requestBodies/UsersPubKeyRequest'
+components:
+  schemas:
+    User:
+      title: User
+      type: object
+      examples: []
+      properties:
+        pubkey:
+          type: string
+          description: User public key (user idenitifier)
+        name:
+          type: string
+          description: User name
+        display_name:
+          type: string
+          description: User display name
+        about:
+          type: string
+          description: User description
+        picture:
+          type: string
+          description: User icon image url
+        banner:
+          type: string
+          description: User profile banner image url
+        website:
+          type: string
+          description: User website url
+      required:
+        - pubkey
+  requestBodies:
+    UsersPubKeyRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              pubkeys:
+                type: array
+                description: Public key of the user to retrieve
+                items:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+            required:
+              - pubkeys
+      description: ''
+  responses:
+    UsersResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              list:
+                type: array
+                description: User list
+                items:
+                  $ref: '#/components/schemas/User'
+            required:
+              - list
