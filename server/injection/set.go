@@ -11,9 +11,15 @@ import (
 
 var bindSet = wire.NewSet(
 	service.NewUserService,
+	service.NewRelationShipService,
 	repository.NewRelayUserRepository,
+	repository.NewRelayRelationShipRepository,
 	wire.Bind(
 		new(domain.UserRepository),
 		new(*repository.RelayUserRepository),
+	),
+	wire.Bind(
+		new(domain.RelationShipRepository),
+		new(*repository.RelayRelationShipRepository),
 	),
 )

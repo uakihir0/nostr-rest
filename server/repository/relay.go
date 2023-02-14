@@ -112,7 +112,11 @@ func QuerySyncAllWithGuard(
 				select {
 				case ev := <-sub.Events:
 					// Send event to channel
-					channel <- ev
+					mu.Lock()
+					if !isClosed {
+						channel <- ev
+					}
+					mu.Unlock()
 
 				case <-sub.EndOfStoredEvents:
 					// Normal termination process

@@ -2,27 +2,25 @@ package service
 
 import (
 	"github.com/uakihir0/nostr-rest/server/domain"
-	"sync"
-)
-
-var (
-	once     sync.Once
-	instance *UserService
+	"github.com/uakihir0/nostr-rest/server/util"
 )
 
 type UserService struct {
 	userRepository domain.UserRepository
 }
 
+var userServiceLock = util.Lock[UserService]{}
+
 func NewUserService(
 	userRepository domain.UserRepository,
 ) *UserService {
-	once.Do(func() {
-		instance = &UserService{
-			userRepository: userRepository,
-		}
-	})
-	return instance
+	return userServiceLock.Once(
+		func() *UserService {
+			return &UserService{
+				userRepository: userRepository,
+			}
+		},
+	)
 }
 
 // GetUsers

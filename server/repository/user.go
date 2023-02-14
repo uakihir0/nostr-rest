@@ -3,18 +3,13 @@ package repository
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/samber/lo"
 	"github.com/uakihir0/nostr-rest/server/domain"
-)
-
-var (
-	once     sync.Once
-	instance *RelayUserRepository
+	"github.com/uakihir0/nostr-rest/server/util"
 )
 
 type UserEventCache struct {
@@ -26,22 +21,23 @@ type RelayUserRepository struct {
 	Cache *lru.Cache[domain.UserPubKey, *UserEventCache]
 }
 
+var userRepositoryLock = util.Lock[RelayUserRepository]{}
 var _ domain.UserRepository = (*RelayUserRepository)(nil)
 
 // NewRelayUserRepository
 // Create a new relay user repository
 func NewRelayUserRepository() *RelayUserRepository {
-	once.Do(func() {
-		cache, err := lru.New[domain.UserPubKey, *UserEventCache](200)
-		if err != nil {
-			panic("Error on NewRelayUserRepository Init")
-		}
-
-		instance = &RelayUserRepository{
-			Cache: cache,
-		}
-	})
-	return instance
+	return userRepositoryLock.Once(
+		func() *RelayUserRepository {
+			cache, err := lru.New[domain.UserPubKey, *UserEventCache](200)
+			if err != nil {
+				panic("Error on NewRelayUserRepository Init")
+			}
+			return &RelayUserRepository{
+				Cache: cache,
+			}
+		},
+	)
 }
 
 // GetUserFromCache
@@ -104,13 +100,12 @@ func (r *RelayUserRepository) GetUsers(
 				return string(pk)
 			})
 
-		events := QuerySyncAllWithGuard(
+		events := QuerySyncAll(
 			context.Background(),
 			[]nostr.Filter{{
 				Kinds:   []int{0},
 				Authors: userPKs,
 			}},
-			len(userPKs),
 		)
 
 		for _, event := range events {

@@ -18,6 +18,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// Post defines model for Post.
+type Post struct {
+	// Raw text of post content.
+	Content string `json:"content"`
+	User    User   `json:"user"`
+}
+
 // User defines model for User.
 type User struct {
 	// User description
@@ -42,11 +49,29 @@ type User struct {
 	Website *string `json:"website,omitempty"`
 }
 
+// PostsResponse defines model for PostsResponse.
+type PostsResponse struct {
+	// Number of list
+	Count int `json:"count"`
+
+	// Post list
+	List []Post `json:"list"`
+}
+
+// PubKeysResponse defines model for PubKeysResponse.
+type PubKeysResponse struct {
+	// User's PublicKeys
+	Pubkeys []string `json:"pubkeys"`
+}
+
 // UserResponse defines model for UserResponse.
 type UserResponse = User
 
 // UsersResponse defines model for UsersResponse.
 type UsersResponse struct {
+	// Number of list
+	Count int `json:"count"`
+
 	// User list
 	List []User `json:"list"`
 }
@@ -57,9 +82,33 @@ type UsersPubKeyRequest struct {
 	Pubkeys []string `json:"pubkeys"`
 }
 
+// GetV1TimelinesHomeParams defines parameters for GetV1TimelinesHome.
+type GetV1TimelinesHomeParams struct {
+	// Public key of the user
+	Pubkey string `form:"pubkey" json:"pubkey"`
+}
+
+// GetV1TimelinesUserParams defines parameters for GetV1TimelinesUser.
+type GetV1TimelinesUserParams struct {
+	// Public key of the user
+	Pubkey string `form:"pubkey" json:"pubkey"`
+}
+
 // GetV1UsersParams defines parameters for GetV1Users.
 type GetV1UsersParams struct {
 	// Public key of the user to retrieve
+	Pubkey string `form:"pubkey" json:"pubkey"`
+}
+
+// GetV1UsersFollowingParams defines parameters for GetV1UsersFollowing.
+type GetV1UsersFollowingParams struct {
+	// Public key of the user
+	Pubkey string `form:"pubkey" json:"pubkey"`
+}
+
+// GetV1UsersFollowingPubkeysParams defines parameters for GetV1UsersFollowingPubkeys.
+type GetV1UsersFollowingPubkeysParams struct {
+	// Public key of the user
 	Pubkey string `form:"pubkey" json:"pubkey"`
 }
 
@@ -68,17 +117,65 @@ type PostV1UsersJSONRequestBody UsersPubKeyRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Get Home Timeline
+	// (GET /v1/timelines/home)
+	GetV1TimelinesHome(ctx echo.Context, params GetV1TimelinesHomeParams) error
+	// Get User Timeline
+	// (GET /v1/timelines/user)
+	GetV1TimelinesUser(ctx echo.Context, params GetV1TimelinesUserParams) error
 	// GET Users Profiles
 	// (GET /v1/users)
 	GetV1Users(ctx echo.Context, params GetV1UsersParams) error
 	// GET User Profiles
 	// (POST /v1/users)
 	PostV1Users(ctx echo.Context) error
+	// Get Following Users
+	// (GET /v1/users/following)
+	GetV1UsersFollowing(ctx echo.Context, params GetV1UsersFollowingParams) error
+	// Get Following User's PublicKeys
+	// (GET /v1/users/following/pubkeys)
+	GetV1UsersFollowingPubkeys(ctx echo.Context, params GetV1UsersFollowingPubkeysParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// GetV1TimelinesHome converts echo context to params.
+func (w *ServerInterfaceWrapper) GetV1TimelinesHome(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetV1TimelinesHomeParams
+	// ------------- Required query parameter "pubkey" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "pubkey", ctx.QueryParams(), &params.Pubkey)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter pubkey: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetV1TimelinesHome(ctx, params)
+	return err
+}
+
+// GetV1TimelinesUser converts echo context to params.
+func (w *ServerInterfaceWrapper) GetV1TimelinesUser(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetV1TimelinesUserParams
+	// ------------- Required query parameter "pubkey" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "pubkey", ctx.QueryParams(), &params.Pubkey)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter pubkey: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetV1TimelinesUser(ctx, params)
+	return err
 }
 
 // GetV1Users converts echo context to params.
@@ -105,6 +202,42 @@ func (w *ServerInterfaceWrapper) PostV1Users(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.PostV1Users(ctx)
+	return err
+}
+
+// GetV1UsersFollowing converts echo context to params.
+func (w *ServerInterfaceWrapper) GetV1UsersFollowing(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetV1UsersFollowingParams
+	// ------------- Required query parameter "pubkey" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "pubkey", ctx.QueryParams(), &params.Pubkey)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter pubkey: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetV1UsersFollowing(ctx, params)
+	return err
+}
+
+// GetV1UsersFollowingPubkeys converts echo context to params.
+func (w *ServerInterfaceWrapper) GetV1UsersFollowingPubkeys(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetV1UsersFollowingPubkeysParams
+	// ------------- Required query parameter "pubkey" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "pubkey", ctx.QueryParams(), &params.Pubkey)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter pubkey: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetV1UsersFollowingPubkeys(ctx, params)
 	return err
 }
 
@@ -136,27 +269,37 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.GET(baseURL+"/v1/timelines/home", wrapper.GetV1TimelinesHome)
+	router.GET(baseURL+"/v1/timelines/user", wrapper.GetV1TimelinesUser)
 	router.GET(baseURL+"/v1/users", wrapper.GetV1Users)
 	router.POST(baseURL+"/v1/users", wrapper.PostV1Users)
+	router.GET(baseURL+"/v1/users/following", wrapper.GetV1UsersFollowing)
+	router.GET(baseURL+"/v1/users/following/pubkeys", wrapper.GetV1UsersFollowingPubkeys)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/5xVTW/iPBD+K9a876GVIgK7lyq3roQqtNUuArqXLlo5yQDTJrZrO7RRlf++shNCaJOi",
-	"LRfi8Xw+M/P4FRKZKylQWAPRK2h8KtDYbzIl9II7g9rMi/g7lov6zkkTKSwK/8mVyijhlqQIH4wUTmaS",
-	"HebcfSktFWrbOFNF/Iil/0zRJJqUM4MI5kWcUcIesWRyw+wOWWFQMyuZRqsJ9wgBkMXc2+b85RbF1u4g",
-	"mozHAeQk2nMAtlQIERirSWyhagVca15CVQW+SNKYQnTfprRu9WT8gImFyv2crlFSmCMYi0bwTzD8r3ED",
-	"EfwXHtEO61sTOqfgY51iMn3hucqQHTJwpfhufCqD00ZkVPfxNKLzzvxVB+zzqZ9B2Dvsg/d8wVXQVNCi",
-	"7/6x1jMQ3a+DN4XxWBZDlXVFPWMScyHqAD22SssNZchqJUY53yIrdNbnKCWjMl7+ETzHoVRqFeZVelx8",
-	"YDpkoiixhR6yokSKj7OuF2Go/ON+XvjNpBQFWdoQ6ss+b88YG7JD2TS3/an0LqgfILIZNi6gd55IbOT7",
-	"kD+ksZotpssVu57P2A23+MxLtkS9R81+KhTX89lSYQIBmCLPuS4PVovpctHowzGBw9XqeLVHbepok9HY",
-	"ASAVCq4IIvg6cqIAFLc7P6PhfhI6EP1hiz3j6pKhTdmB3WykZrxlRRlbTqI+NqM5Ah9UewKYpRDBDdpf",
-	"E88YPrrmOVof9f5z9Os0nwrUrt56QA/N6XbM6gKDDvHk/GVWc8mBqw/H951fv+HbL+PxEAW1euEJKXvK",
-	"aHt4M10xDwCb1yAZP+nSfIB5XmSWHA11wGdn0Tej3+LCTddUpEqSsMx4f4QpI8EW7bNajtjFSjK+l5Sy",
-	"u8Uty/zLxTLKyfreXV6+6+Rcmk4rj290OYxO5xkPe97w6rNImzNQd5D2Cn7J+mbuVibcbb/jgAh21qoo",
-	"DDMn3Eljo6vx1RiqdfU3AAD//0zTY+2hCAAA",
+	"H4sIAAAAAAAC/9yYX2/bNhDAvwrBDWgDeJEdO1Witw7IumDBZjjJXrpgoKSzzVYiGfLkRAv83QeSkiw7",
+	"kp1leVj3Zv69u9/90dFPNJG5kgIEGho9UQ33BRj8UaYc3MStAW2mRfwLlDO/ZmcTKRCE+8mUynjCkEsR",
+	"fDFS2Dl4ZLnK/AUX/jcZ2cGKZQXYH6qIv0JpaPSZhuEHYJPJOByfTsZno/lowsKTYQzjZBJ+OB+HaQLh",
+	"yWkI6WgYjuF0wkbnJ2mcnJ/Px3EISULv1uv1gJpkCTlzd2upQGNlQCPpiaZgEs2VVZVGdFrEGU/IVyiJ",
+	"nBNcAikMaIKSaEDNYQV0QDlC7s7m7PEKxAKXNBoNhwOac9GMBxRLBTSiBjUXC7puJpjWrKRWPQuWa0it",
+	"xbVKd80+GX+BBOl6vfZ7jZLCeP2n0qCZVTMvYN/HIZGFP7RN4dcij0FbAhk3SBuNuEBYgLa2uIXn+KTB",
+	"+kxD6XsNcxrR74JNVAVeIRPYAwfRVBd6Zbv4DHbUsDf68HwLSL3BYtPgnSE+ZqywttVv5/0u66zoV5m2",
+	"zxn20n0C/4sRZ/X6RxHnjXz7iGuqTZOgXcY3zLaPz9gDQXhEC0DZHKp2HtOOMmIr0gtduW1VLb66wtrF",
+	"MYMqb+mumQP6+INBqTK+WDqdeUoj+pccPuA8Nvch3o+diNtKn02B/3w32LGcxbLo8157qsPcmAnhBXSc",
+	"VVrOeQbEbyI8Zwsghc66Lkq5URkr/xQshz5V/BbitnRcsedo3xHFEyx03ymeSLFfa18Z+szffK7euw8V",
+	"T0Fw5HMO+qjrtgeIDcc+barVblU6K1Y7iFwcdOYKF3PZkfPSoCazi+sb8nF6ST4xhAdWkmvQK9DkNwXi",
+	"4/TyWkFCB9QUec50WZ+aXVzPqv10o0C9dLNZWoE2XtroeGgBSAWCKU4jOj62UwOqGC5djAarUYA8h4wL",
+	"MMFSelcvoCNuPwG6PDU2YS14Q3DJ0DUMRkFiHZD61mEus0w+GJvJNiFclbxM/R2/j25qeT9LFz6KaZYD",
+	"grZZ9LLmxBY+u3pfgLYm+xit/dN2GuoC2j3RroPvdrqMk+Gwr840+4LtVsSVwcZXFpM1jNRmuvVtznU1",
+	"6+Vs7WxYPwd8CGwVlf8/sC5jn4F1wdjL89qhK1t1w8ylJqzpcmWMjAs/rGprD2DXELwO7G47/TrIOXu8",
+	"9B/8uveuh4O3ccBWj7XD/+LG8Tdk6iEZV6ql2cM8LzLk9tHTgk8O0jfHf4j3tjxeiFRJLrAV/lyQWfM0",
+	"K4/J+xtJ2ErylNzOrkjmXiIk4zlH57ujo2eetDG2ceXmnVf202k9BYOOd+D6taTNAdQt0u1QD3x9tW7e",
+	"V0R8jfZ7ISVx+fJK4pT7qZHyLZaSvXwBSWOdD+o+wkHrJbSX9DuzE+T/Gvu0kvxNFvKdl+gh/ttPSv8/",
+	"huuJuiy+kgmzzZpt2SK6RFRREGR2cikNRmfDsyFd363/DgAA//+NBxXg0xEAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

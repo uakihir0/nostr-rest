@@ -55,3 +55,47 @@ func (h *Handler) PostV1Users(c echo.Context) error {
 		ToUsersResponse(users),
 	)
 }
+
+// GetV1UsersFollowing
+// Get User's following
+func (h *Handler) GetV1UsersFollowing(c echo.Context, params openapi.GetV1UsersFollowingParams) error {
+	userService := injection.UserService()
+	relationShipService := injection.RelationShipService()
+
+	pk := domain.UserPubKey(params.Pubkey)
+
+	// Get public keys first
+	pks, err := relationShipService.GetFollowingPubKeys(pk)
+	if err != nil {
+		return err
+	}
+
+	// Get user objects from public keys
+	users, err := userService.GetUsers(pks)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(
+		http.StatusOK,
+		ToUsersResponse(users),
+	)
+}
+
+// GetV1UsersFollowingPubkeys
+// Get User's following public keys
+func (h *Handler) GetV1UsersFollowingPubkeys(c echo.Context, params openapi.GetV1UsersFollowingPubkeysParams) error {
+	relationShipService := injection.RelationShipService()
+
+	pk := domain.UserPubKey(params.Pubkey)
+
+	pks, err := relationShipService.GetFollowingPubKeys(pk)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(
+		http.StatusOK,
+		ToPubKeysResponse(pks),
+	)
+}

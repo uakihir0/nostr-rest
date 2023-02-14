@@ -8,6 +8,8 @@ import (
 type Handler struct {
 }
 
+var _ openapi.ServerInterface = (*Handler)(nil)
+
 func (h *Handler) RegisterHandler(e *echo.Echo) {
 	openapi.RegisterHandlers(e, h)
 }

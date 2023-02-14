@@ -37,6 +37,71 @@ paths:
         (API Endpoint specified in RequestBody. (To avoid URL length limitation))
       requestBody:
         $ref: '#/components/requestBodies/UsersPubKeyRequest'
+  /v1/users/following:
+    get:
+      summary: Get Following Users
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/UsersResponse'
+      operationId: get-v1-users-following
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: pubkey
+          description: Public key of the user
+          required: true
+      description: Get users followed by the specified user.
+  /v1/users/following/pubkeys:
+    get:
+      summary: Get Following User's PublicKeys
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/PubKeysResponse'
+      operationId: get-v1-users-following-pubkeys
+      description: Get user's public keys followed by the specified user.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: pubkey
+          description: Public key of the user
+          required: true
+    parameters: []
+  /v1/timelines/home:
+    get:
+      summary: Get Home Timeline
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/PostsResponse'
+      operationId: get-v1-timelines-home
+      description: Get posts of users that the specified user follows.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: pubkey
+          required: true
+          description: Public key of the user
+  /v1/timelines/user:
+    get:
+      summary: Get User Timeline
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/PostsResponse'
+      operationId: get-v1-timelines-user
+      description: Get the posts of the specified user.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: pubkey
+          description: Public key of the user
+          required: true
 components:
   schemas:
     User:
@@ -67,6 +132,21 @@ components:
           description: User website url
       required:
         - pubkey
+    Post:
+      title: Post
+      x-stoplight:
+        id: zo0wtfbsq7tq3
+      type: object
+      properties:
+        content:
+          type: string
+          description: Raw text of post content.
+        user:
+          $ref: '#/components/schemas/User'
+          description: Author of post.
+      required:
+        - content
+        - user
   requestBodies:
     UsersPubKeyRequest:
       content:
@@ -83,10 +163,15 @@ components:
                   maxLength: 100
             required:
               - pubkeys
+          examples:
+            Example 1:
+              value:
+                pubkeys:
+                  - 776ea4437354381f14a720be3c476937dce7257ed1073e54a192dbc99f3b7ecc
       description: ''
   responses:
     UsersResponse:
-      description: Example response
+      description: ''
       content:
         application/json:
           schema:
@@ -97,11 +182,47 @@ components:
                 description: User list
                 items:
                   $ref: '#/components/schemas/User'
+              count:
+                type: integer
+                description: Number of list
             required:
               - list
+              - count
     UserResponse:
-      description: Example response
+      description: ''
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/User'
+    PubKeysResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              pubkeys:
+                type: array
+                description: User's PublicKeys
+                items:
+                  type: string
+            required:
+              - pubkeys
+    PostsResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              list:
+                type: array
+                description: Post list
+                items:
+                  $ref: '#/components/schemas/Post'
+              count:
+                type: integer
+                description: Number of list
+            required:
+              - list
+              - count

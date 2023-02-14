@@ -12,3 +12,8 @@ func UserService() *service.UserService {
 	wire.Build(bindSet)
 	return nil
 }
+
+func RelationShipService() *service.RelationShipService {
+	wire.Build(bindSet)
+	return nil
+}
