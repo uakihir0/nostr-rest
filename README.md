@@ -1,4 +1,4 @@
-[> Japanese](./docs/README.ja.md)
+[> Japanese](docs/md/README.ja.md)
 
 **WIP**
 
