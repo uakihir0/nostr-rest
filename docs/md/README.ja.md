@@ -2,6 +2,8 @@
 
 # Nostr REST Gateway Server
 
+**[API 仕様書](https://uakihir0.github.io/nostr-rest/)**
+
 このアプリケーションは Go 言語で書かれた、Nostr の REST Wrapper サーバーです。
 
 このサーバーは、Nostr のリレーサーバーにアクセスし、Twitter、 Mastodon のような REST API を提供します。Nostr のプロトコルでは、複数のリレーサーバーと WebSocket で通信を行いサービスを実現します。一方で、プロトコルの特性上、通信量が膨れ上がってしまう問題が発生します。特にモバイルでは、通信量やバッテリーの制限があるため、この問題は非常にクリティカルです。

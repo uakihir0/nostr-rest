@@ -4,6 +4,8 @@
 
 # Nostr REST Gateway Server
 
+**[API Specifications](https://uakihir0.github.io/nostr-rest/)**
+
 This application is a Nostr REST Wrapper server written in the Go language.
 
 The Nostr protocol uses WebSockets to communicate with multiple relay servers to provide services. However, due to the nature of the protocol, the volume of communication can become overwhelming. This problem is especially critical in mobile applications, where there are limits to the amount of traffic and battery power.
