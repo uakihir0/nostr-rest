@@ -38,3 +38,33 @@ func ToPubKeysResponse(pks []domain.UserPubKey) *openapi.PubKeysResponse {
 		),
 	}
 }
+
+func ToTimeline(posts []*domain.Post, users []*domain.User) *openapi.PostsResponse {
+
+	userMap := make(map[string]*domain.User)
+	for _, user := range users {
+		pk := string(user.PubKey)
+		userMap[pk] = user
+	}
+
+	postResponses := make([]openapi.Post, 0)
+	for _, post := range posts {
+		pk := string(post.UserPubKey)
+		user, ok := userMap[pk]
+
+		if ok {
+			postResponses = append(
+				postResponses,
+				openapi.Post{
+					Content: post.Content,
+					User:    *ToUser(user),
+				},
+			)
+		}
+	}
+
+	return &openapi.PostsResponse{
+		Count: len(postResponses),
+		List:  postResponses,
+	}
+}

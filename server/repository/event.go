@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/uakihir0/nostr-rest/server/domain"
+	"time"
 )
 
 type UserEvent struct {
@@ -34,5 +35,27 @@ func MarshalUserEvent(e *nostr.Event) (*UserEvent, error) {
 		return nil, err
 	}
 	event.PubKey = e.PubKey
+	return event, nil
+}
+
+type PostEvent struct {
+	UserPubKey string
+	Content    string
+	CreatedAt  time.Time
+}
+
+func (e *PostEvent) ToPost() *domain.Post {
+	return &domain.Post{
+		UserPubKey: domain.UserPubKey(e.UserPubKey),
+		Content:    e.Content,
+		CreatedAt:  e.CreatedAt,
+	}
+}
+
+func MarshalPostEvent(e *nostr.Event) (*PostEvent, error) {
+	event := &PostEvent{}
+	event.CreatedAt = e.CreatedAt
+	event.UserPubKey = e.PubKey
+	event.Content = e.Content
 	return event, nil
 }

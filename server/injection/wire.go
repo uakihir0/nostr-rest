@@ -13,6 +13,11 @@ func UserService() *service.UserService {
 	return nil
 }
 
+func PostService() *service.PostService {
+	wire.Build(bindSet)
+	return nil
+}
+
 func RelationShipService() *service.RelationShipService {
 	wire.Build(bindSet)
 	return nil

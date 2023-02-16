@@ -19,6 +19,12 @@ func UserService() *service.UserService {
 	return userService
 }
 
+func PostService() *service.PostService {
+	relayPostRepository := repository.NewRelayPostRepository()
+	postService := service.NewPostService(relayPostRepository)
+	return postService
+}
+
 func RelationShipService() *service.RelationShipService {
 	relayRelationShipRepository := repository.NewRelayRelationShipRepository()
 	relationShipService := service.NewRelationShipService(relayRelationShipRepository)
