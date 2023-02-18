@@ -1,12 +1,13 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
 	"github.com/uakihir0/nostr-rest/server/domain"
 	"github.com/uakihir0/nostr-rest/server/injection"
 	"github.com/uakihir0/nostr-rest/server/openapi"
-	"net/http"
 )
 
 // GetV1TimelinesHome
@@ -24,7 +25,12 @@ func (h *Handler) GetV1TimelinesHome(c echo.Context, params openapi.GetV1Timelin
 	}
 
 	// Get following user's post as timeline
-	posts, err := postService.GetPosts(followingPks)
+	posts, err := postService.GetPosts(
+		followingPks,
+		*params.MaxResults,
+		nil,
+		nil,
+	)
 	if err != nil {
 		return err
 	}
@@ -41,7 +47,6 @@ func (h *Handler) GetV1TimelinesHome(c echo.Context, params openapi.GetV1Timelin
 	// Distinct by user public key
 	postsPks = lo.FindDuplicatesBy(postsPks,
 		func(pk domain.UserPubKey) string {
-			println(string(pk))
 			return string(pk)
 		})
 

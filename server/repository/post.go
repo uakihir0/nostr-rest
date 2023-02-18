@@ -6,6 +6,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/uakihir0/nostr-rest/server/domain"
 	"github.com/uakihir0/nostr-rest/server/util"
+	"time"
 )
 
 type RelayPostRepository struct {
@@ -25,19 +26,34 @@ func NewRelayPostRepository() *RelayPostRepository {
 }
 
 // GetPosts
-func (r *RelayPostRepository) GetPosts(pks []domain.UserPubKey) ([]*domain.Post, error) {
+func (r *RelayPostRepository) GetPosts(
+	pks []domain.UserPubKey,
+	maxResults int,
+	startTime *time.Time,
+	endTime *time.Time,
+) ([]*domain.Post, error) {
 
 	userPKs := lo.Map(pks,
 		func(pk domain.UserPubKey, _ int) string {
 			return string(pk)
 		})
 
+	filter := nostr.Filter{
+		Kinds:   []int{1},
+		Authors: userPKs,
+		Limit:   maxResults,
+	}
+
+	if startTime != nil {
+		filter.Since = startTime
+	}
+	if endTime != nil {
+		filter.Until = endTime
+	}
+
 	events := QuerySyncAll(
 		context.Background(),
-		[]nostr.Filter{{
-			Kinds:   []int{1},
-			Authors: userPKs,
-		}},
+		[]nostr.Filter{filter},
 	)
 
 	// Distinct public keys

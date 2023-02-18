@@ -39,6 +39,7 @@ func MarshalUserEvent(e *nostr.Event) (*UserEvent, error) {
 }
 
 type PostEvent struct {
+	ID         string
 	UserPubKey string
 	Content    string
 	CreatedAt  time.Time
@@ -46,6 +47,7 @@ type PostEvent struct {
 
 func (e *PostEvent) ToPost() *domain.Post {
 	return &domain.Post{
+		ID:         domain.PostID(e.ID),
 		UserPubKey: domain.UserPubKey(e.UserPubKey),
 		Content:    e.Content,
 		CreatedAt:  e.CreatedAt,
@@ -57,5 +59,6 @@ func MarshalPostEvent(e *nostr.Event) (*PostEvent, error) {
 	event.CreatedAt = e.CreatedAt
 	event.UserPubKey = e.PubKey
 	event.Content = e.Content
+	event.ID = e.ID
 	return event, nil
 }

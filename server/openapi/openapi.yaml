@@ -80,12 +80,10 @@ paths:
       operationId: get-v1-timelines-home
       description: Get posts of users that the specified user follows.
       parameters:
-        - schema:
-            type: string
-          in: query
-          name: pubkey
-          required: true
-          description: Public key of the user
+        - $ref: '#/components/parameters/PubkeyParameter'
+        - $ref: '#/components/parameters/MaxResultsParameter'
+        - $ref: '#/components/parameters/StartTimeParameter'
+        - $ref: '#/components/parameters/EndTimePatameter'
   /v1/timelines/user:
     get:
       summary: Get User Timeline
@@ -96,12 +94,10 @@ paths:
       operationId: get-v1-timelines-user
       description: Get the posts of the specified user.
       parameters:
-        - schema:
-            type: string
-          in: query
-          name: pubkey
-          description: Public key of the user
-          required: true
+        - $ref: '#/components/parameters/PubkeyParameter'
+        - $ref: '#/components/parameters/MaxResultsParameter'
+        - $ref: '#/components/parameters/StartTimeParameter'
+        - $ref: '#/components/parameters/EndTimePatameter'
 components:
   schemas:
     User:
@@ -138,15 +134,22 @@ components:
         id: zo0wtfbsq7tq3
       type: object
       properties:
+        id:
+          type: string
         content:
           type: string
           description: Raw text of post content.
         user:
           $ref: '#/components/schemas/User'
           description: Author of post.
+        created_at:
+          type: string
+          description: Time post was created (UTC)
       required:
+        - id
         - content
         - user
+        - created_at
   requestBodies:
     UsersPubKeyRequest:
       content:
@@ -226,3 +229,34 @@ components:
             required:
               - list
               - count
+  parameters:
+    PubkeyParameter:
+      name: pubkey
+      in: query
+      required: true
+      schema:
+        type: string
+      description: Public key of the user
+    MaxResultsParameter:
+      name: max_results
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+      description: Specifies the number of Posts to try and retrieve (default 20)
+    StartTimeParameter:
+      in: query
+      required: false
+      schema:
+        type: string
+      name: start_time
+      description: The oldest or earliest UTC timestamp from which the Posts will be provided
+    EndTimePatameter:
+      name: end_time
+      in: query
+      required: false
+      schema:
+        type: string
+      description: The newest or most recent UTC timestamp from which the Posts will be provided

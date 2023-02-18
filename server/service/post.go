@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/uakihir0/nostr-rest/server/domain"
 	"github.com/uakihir0/nostr-rest/server/util"
+	"time"
 )
 
 type PostService struct {
@@ -24,9 +25,20 @@ func NewPostService(
 }
 
 // GetPosts
-func (s *PostService) GetPosts(pks []domain.UserPubKey) ([]*domain.Post, error) {
+func (s *PostService) GetPosts(
+	pks []domain.UserPubKey,
+	maxResults int,
+	startTime *time.Time,
+	endTime *time.Time,
+) ([]*domain.Post, error) {
 
-	posts, err := s.postRepository.GetPosts(pks)
+	posts, err := s.postRepository.GetPosts(
+		pks,
+		maxResults,
+		startTime,
+		endTime,
+	)
+
 	if err != nil {
 		return nil, err
 	}

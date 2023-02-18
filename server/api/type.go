@@ -6,6 +6,10 @@ import (
 	"github.com/uakihir0/nostr-rest/server/openapi"
 )
 
+const (
+	TimeLayout = "2006-01-02 15:04:05"
+)
+
 func ToUser(user *domain.User) *openapi.User {
 	return &openapi.User{
 		Pubkey:      string(user.PubKey),
@@ -56,10 +60,14 @@ func ToTimeline(posts []*domain.Post, users []*domain.User) *openapi.PostsRespon
 			postResponses = append(
 				postResponses,
 				openapi.Post{
-					Content: post.Content,
-					User:    *ToUser(user),
+					Id:        string(post.ID),
+					CreatedAt: post.CreatedAt.Format(TimeLayout),
+					Content:   post.Content,
+					User:      *ToUser(user),
 				},
 			)
+		} else {
+			println("User not found: " + pk)
 		}
 	}
 

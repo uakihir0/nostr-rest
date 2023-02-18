@@ -22,7 +22,11 @@ import (
 type Post struct {
 	// Raw text of post content.
 	Content string `json:"content"`
-	User    User   `json:"user"`
+
+	// Time post was created (UTC)
+	CreatedAt string `json:"created_at"`
+	Id        string `json:"id"`
+	User      User   `json:"user"`
 }
 
 // User defines model for User.
@@ -48,6 +52,18 @@ type User struct {
 	// User website url
 	Website *string `json:"website,omitempty"`
 }
+
+// EndTimePatameter defines model for EndTimePatameter.
+type EndTimePatameter = string
+
+// MaxResultsParameter defines model for MaxResultsParameter.
+type MaxResultsParameter = int
+
+// PubkeyParameter defines model for PubkeyParameter.
+type PubkeyParameter = string
+
+// StartTimeParameter defines model for StartTimeParameter.
+type StartTimeParameter = string
 
 // PostsResponse defines model for PostsResponse.
 type PostsResponse struct {
@@ -85,13 +101,31 @@ type UsersPubKeyRequest struct {
 // GetV1TimelinesHomeParams defines parameters for GetV1TimelinesHome.
 type GetV1TimelinesHomeParams struct {
 	// Public key of the user
-	Pubkey string `form:"pubkey" json:"pubkey"`
+	Pubkey PubkeyParameter `form:"pubkey" json:"pubkey"`
+
+	// Specifies the number of Posts to try and retrieve (default 20)
+	MaxResults *MaxResultsParameter `form:"max_results,omitempty" json:"max_results,omitempty"`
+
+	// The oldest or earliest UTC timestamp from which the Posts will be provided
+	StartTime *StartTimeParameter `form:"start_time,omitempty" json:"start_time,omitempty"`
+
+	// The newest or most recent UTC timestamp from which the Posts will be provided
+	EndTime *EndTimePatameter `form:"end_time,omitempty" json:"end_time,omitempty"`
 }
 
 // GetV1TimelinesUserParams defines parameters for GetV1TimelinesUser.
 type GetV1TimelinesUserParams struct {
 	// Public key of the user
-	Pubkey string `form:"pubkey" json:"pubkey"`
+	Pubkey PubkeyParameter `form:"pubkey" json:"pubkey"`
+
+	// Specifies the number of Posts to try and retrieve (default 20)
+	MaxResults *MaxResultsParameter `form:"max_results,omitempty" json:"max_results,omitempty"`
+
+	// The oldest or earliest UTC timestamp from which the Posts will be provided
+	StartTime *StartTimeParameter `form:"start_time,omitempty" json:"start_time,omitempty"`
+
+	// The newest or most recent UTC timestamp from which the Posts will be provided
+	EndTime *EndTimePatameter `form:"end_time,omitempty" json:"end_time,omitempty"`
 }
 
 // GetV1UsersParams defines parameters for GetV1Users.
@@ -155,6 +189,27 @@ func (w *ServerInterfaceWrapper) GetV1TimelinesHome(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter pubkey: %s", err))
 	}
 
+	// ------------- Optional query parameter "max_results" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "max_results", ctx.QueryParams(), &params.MaxResults)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter max_results: %s", err))
+	}
+
+	// ------------- Optional query parameter "start_time" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "start_time", ctx.QueryParams(), &params.StartTime)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter start_time: %s", err))
+	}
+
+	// ------------- Optional query parameter "end_time" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "end_time", ctx.QueryParams(), &params.EndTime)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter end_time: %s", err))
+	}
+
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.GetV1TimelinesHome(ctx, params)
 	return err
@@ -171,6 +226,27 @@ func (w *ServerInterfaceWrapper) GetV1TimelinesUser(ctx echo.Context) error {
 	err = runtime.BindQueryParameter("form", true, true, "pubkey", ctx.QueryParams(), &params.Pubkey)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter pubkey: %s", err))
+	}
+
+	// ------------- Optional query parameter "max_results" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "max_results", ctx.QueryParams(), &params.MaxResults)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter max_results: %s", err))
+	}
+
+	// ------------- Optional query parameter "start_time" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "start_time", ctx.QueryParams(), &params.StartTime)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter start_time: %s", err))
+	}
+
+	// ------------- Optional query parameter "end_time" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "end_time", ctx.QueryParams(), &params.EndTime)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter end_time: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
@@ -281,25 +357,29 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

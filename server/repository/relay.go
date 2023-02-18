@@ -104,7 +104,7 @@ func QuerySyncAllWithGuard(
 
 	for _, c := range cs {
 		// Timeout occurs if acquisition is not possible
-		ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 		sub := c.Relay.Subscribe(ctx, filters)
 
 		go func() {

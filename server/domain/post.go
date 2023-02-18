@@ -2,7 +2,10 @@ package domain
 
 import "time"
 
+type PostID string
+
 type Post struct {
+	ID         PostID
 	UserPubKey UserPubKey
 	Content    string
 	CreatedAt  time.Time
@@ -16,5 +19,5 @@ type PostWithUser struct {
 type PostRepository interface {
 
 	// GetPosts
-	GetPosts([]UserPubKey) ([]*Post, error)
+	GetPosts([]UserPubKey, int, *time.Time, *time.Time) ([]*Post, error)
 }
