@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/samber/lo"
 	"sort"
@@ -15,7 +16,7 @@ type RelayConnection struct {
 	Relay    *nostr.Relay
 	Context  *context.Context
 	Cancel   *context.CancelFunc
-	WaitSpan int
+	WaitSpan time.Duration
 }
 
 var connections = map[string]*RelayConnection{}
@@ -25,42 +26,84 @@ var connections = map[string]*RelayConnection{}
 func GetConnections() []*RelayConnection {
 	return lo.Filter(lo.Values(connections),
 		func(e *RelayConnection, _ int) bool {
-			// Get valid connections with no errors
-			return e.Relay != nil && e.Relay.ConnectionError != nil
+			// Get valid connections
+			return e.Relay != nil
 		})
 }
 
-// ConnectAllRelayServers
+// StartAllRelayServers
 // Connect to all relay servers.
-func ConnectAllRelayServers(urls []string) {
+func StartAllRelayServers(urls []string) {
 	for _, url := range urls {
-		ConnectRelayServer(url)
+		StartRelayServer(url)
 	}
 }
 
-// ConnectRelayServer
+// StartRelayServer
 // Connect to relay server.
-func ConnectRelayServer(url string) {
+func StartRelayServer(url string) {
+
+	c := &RelayConnection{URL: url, WaitSpan: 1}
+	connections[url] = c
+
+	go func() {
+		for {
+			err := ConnectRelay(c)
+			if err != nil {
+				PrintConnectionError(c, err)
+				SleepTimeSpan(c)
+				continue
+			}
+
+			// Print connection succeeded
+			fmt.Printf("> connection success: %s\n", c.URL)
+
+			select {
+			// Waiting for connection error
+			case err = <-c.Relay.ConnectionError:
+				ClearRelay(c)
+
+				PrintConnectionError(c, err)
+				SleepTimeSpan(c)
+			}
+		}
+	}()
+}
+
+func ConnectRelay(c *RelayConnection) error {
 
 	ctx, cancel := context.WithCancel(context.Background())
-	relay, err := nostr.RelayConnect(ctx, url)
-
+	relay, err := nostr.RelayConnect(ctx, c.URL)
 	if err != nil {
-		// If connection is not made, reconnect later.
-		connection := &RelayConnection{URL: url, WaitSpan: 1}
-		connections[url] = connection
 		cancel()
-
-	} else {
-		connection := &RelayConnection{
-			URL:      url,
-			Relay:    relay,
-			Context:  &ctx,
-			Cancel:   &cancel,
-			WaitSpan: 1,
-		}
-		connections[url] = connection
+		return err
 	}
+
+	c.Relay = relay
+	c.Context = &ctx
+	c.Cancel = &cancel
+	return nil
+}
+
+func ClearRelay(c *RelayConnection) {
+	c.Relay = nil
+	c.Context = nil
+	c.Cancel = nil
+}
+
+func SleepTimeSpan(c *RelayConnection) {
+
+	// Insert Timespan to wait
+	time.Sleep(c.WaitSpan * time.Second)
+	c.WaitSpan = c.WaitSpan * 2
+	if c.WaitSpan > 60 {
+		c.WaitSpan = 60
+	}
+}
+
+func PrintConnectionError(c *RelayConnection, err error) {
+	fmt.Printf("> connection error: %s\n", c.URL)
+	fmt.Printf(">> error: %s\n", err)
 }
 
 // QuerySyncAll

@@ -7,7 +7,7 @@ import (
 
 func main() {
 
-	repository.ConnectAllRelayServers(
+	repository.StartAllRelayServers(
 		[]string{
 			"wss://eden.nostr.land",
 			"wss://relay.damus.io",
