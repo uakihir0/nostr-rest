@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  rest:
+    image: rest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: run
+      args:
+        build: ${BUILD_TAG:-}
+    ports:
+      - "8080:8080"

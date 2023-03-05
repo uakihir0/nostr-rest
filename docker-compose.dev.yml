@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  rest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        build: ${BUILD_TAG:-}
+    volumes:
+      - ./:/app
+      - /tmp
