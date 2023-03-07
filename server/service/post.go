@@ -31,18 +31,16 @@ func NewPostService(
 func (s *PostService) GetPosts(
 	pks []domain.UserPubKey,
 	maxResults int,
-	startTime *time.Time,
-	endTime *time.Time,
+	sinceTime *time.Time,
+	untilTime *time.Time,
 ) ([]*domain.Post, error) {
 
 	posts, err := s.postRepository.GetPosts(
-		pks, maxResults, startTime, endTime,
+		pks, maxResults, sinceTime, untilTime,
 	)
 	if err != nil {
 		return nil, err
 	}
-
-	print("ここまで")
 
 	sort.Slice(posts, func(i, j int) bool {
 		// Sort by creation time in descending order of time

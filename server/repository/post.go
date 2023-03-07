@@ -29,8 +29,8 @@ func NewRelayPostRepository() *RelayPostRepository {
 func (r *RelayPostRepository) GetPosts(
 	pks []domain.UserPubKey,
 	maxResults int,
-	startTime *time.Time,
-	endTime *time.Time,
+	sinceTime *time.Time,
+	untilTime *time.Time,
 ) ([]*domain.Post, error) {
 
 	userPKs := lo.Map(pks,
@@ -44,11 +44,11 @@ func (r *RelayPostRepository) GetPosts(
 		Limit:   maxResults,
 	}
 
-	if startTime != nil {
-		filter.Since = startTime
+	if sinceTime != nil {
+		filter.Since = sinceTime
 	}
-	if endTime != nil {
-		filter.Until = endTime
+	if untilTime != nil {
+		filter.Until = untilTime
 	}
 
 	events := QuerySyncAll(

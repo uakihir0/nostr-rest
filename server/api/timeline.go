@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
@@ -29,12 +30,30 @@ func (h *Handler) GetV1TimelinesHome(c echo.Context, params openapi.GetV1Timelin
 		maxResults = *params.MaxResults
 	}
 
+	var sinceTime *time.Time = nil
+	if params.SinceTime != nil {
+		parse, err := time.Parse(TimeLayout, *params.SinceTime)
+		if err != nil {
+			return err
+		}
+		sinceTime = &parse
+	}
+
+	var untilTime *time.Time = nil
+	if params.UntilTime != nil {
+		parse, err := time.Parse(TimeLayout, *params.UntilTime)
+		if err != nil {
+			return err
+		}
+		untilTime = &parse
+	}
+
 	// Get following user's post as timeline
 	posts, err := postService.GetPosts(
 		followingPks,
 		maxResults,
-		nil,
-		nil,
+		sinceTime,
+		untilTime,
 	)
 	if err != nil {
 		return err
