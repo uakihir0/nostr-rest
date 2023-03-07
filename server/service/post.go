@@ -1,8 +1,10 @@
 package service
 
 import (
+	"github.com/samber/lo"
 	"github.com/uakihir0/nostr-rest/server/domain"
 	"github.com/uakihir0/nostr-rest/server/util"
+	"sort"
 	"time"
 )
 
@@ -25,6 +27,7 @@ func NewPostService(
 }
 
 // GetPosts
+// Results return in descending order of creation time.
 func (s *PostService) GetPosts(
 	pks []domain.UserPubKey,
 	maxResults int,
@@ -33,14 +36,22 @@ func (s *PostService) GetPosts(
 ) ([]*domain.Post, error) {
 
 	posts, err := s.postRepository.GetPosts(
-		pks,
-		maxResults,
-		startTime,
-		endTime,
+		pks, maxResults, startTime, endTime,
 	)
-
 	if err != nil {
 		return nil, err
 	}
-	return posts, nil
+
+	print("ここまで")
+
+	sort.Slice(posts, func(i, j int) bool {
+		// Sort by creation time in descending order of time
+		return posts[i].CreatedAt.Unix() > posts[j].CreatedAt.Unix()
+	})
+
+	return lo.Subset(
+		posts,
+		0,
+		uint(maxResults),
+	), nil
 }

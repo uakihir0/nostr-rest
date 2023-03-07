@@ -1,6 +1,8 @@
 package api
 
 import (
+	"time"
+
 	"github.com/samber/lo"
 	"github.com/uakihir0/nostr-rest/server/domain"
 	"github.com/uakihir0/nostr-rest/server/openapi"
@@ -35,6 +37,7 @@ func ToUsersResponse(users []*domain.User) *openapi.UsersResponse {
 
 func ToPubKeysResponse(pks []domain.UserPubKey) *openapi.PubKeysResponse {
 	return &openapi.PubKeysResponse{
+		Count: len(pks),
 		Pubkeys: lo.Map(pks,
 			func(i domain.UserPubKey, _ int) string {
 				return string(i)
@@ -43,7 +46,11 @@ func ToPubKeysResponse(pks []domain.UserPubKey) *openapi.PubKeysResponse {
 	}
 }
 
-func ToTimeline(posts []*domain.Post, users []*domain.User) *openapi.PostsResponse {
+func ToTimeline(
+	pks []domain.UserPubKey,
+	posts []*domain.Post,
+	users []*domain.User,
+) *openapi.UsersTimelineResponse {
 
 	userMap := make(map[string]*domain.User)
 	for _, user := range users {
@@ -51,14 +58,14 @@ func ToTimeline(posts []*domain.Post, users []*domain.User) *openapi.PostsRespon
 		userMap[pk] = user
 	}
 
-	postResponses := make([]openapi.Post, 0)
+	postSlice := make([]openapi.Post, 0)
 	for _, post := range posts {
 		pk := string(post.UserPubKey)
 		user, ok := userMap[pk]
 
 		if ok {
-			postResponses = append(
-				postResponses,
+			postSlice = append(
+				postSlice,
 				openapi.Post{
 					Id:        string(post.ID),
 					CreatedAt: post.CreatedAt.Format(TimeLayout),
@@ -71,8 +78,33 @@ func ToTimeline(posts []*domain.Post, users []*domain.User) *openapi.PostsRespon
 		}
 	}
 
-	return &openapi.PostsResponse{
-		Count: len(postResponses),
-		List:  postResponses,
+	postsResponse := openapi.Posts{
+		Count: len(postSlice),
+		List:  postSlice,
+	}
+
+	var pagingResponse *openapi.Paging
+	if len(postSlice) > 0 {
+
+		lastPost, err := lo.Last(posts)
+		if err != nil {
+			return nil
+		}
+
+		pagingResponse = &openapi.Paging{
+			FutureSinceTime: posts[0].CreatedAt.Add(+time.Second).Format(TimeLayout),
+			PastUntileTime:  lastPost.CreatedAt.Format(TimeLayout),
+		}
+	}
+
+	pksResponse := lo.Map(pks,
+		func(pk domain.UserPubKey, _ int) string {
+			return string(pk)
+		})
+
+	return &openapi.UsersTimelineResponse{
+		Posts:   postsResponse,
+		Paging:  pagingResponse,
+		Pubkeys: pksResponse,
 	}
 }

@@ -18,6 +18,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// Paging defines model for Paging.
+type Paging struct {
+	// Specify when to get future posts from this result
+	FutureSinceTime string `json:"future_since_time"`
+
+	// Specify when to get past posts from this result
+	PastUntileTime string `json:"past_untile_time"`
+}
+
 // Post defines model for Post.
 type Post struct {
 	// Raw text of post content.
@@ -28,6 +37,18 @@ type Post struct {
 	Id        string `json:"id"`
 	User      User   `json:"user"`
 }
+
+// Posts defines model for Posts.
+type Posts struct {
+	// Number of list
+	Count int `json:"count"`
+
+	// Post list
+	List []Post `json:"list"`
+}
+
+// User's PublicKeys
+type Pubkeys = []string
 
 // User defines model for User.
 type User struct {
@@ -53,8 +74,14 @@ type User struct {
 	Website *string `json:"website,omitempty"`
 }
 
-// EndTimePatameter defines model for EndTimePatameter.
-type EndTimePatameter = string
+// Users defines model for Users.
+type Users struct {
+	// Number of list
+	Count int `json:"count"`
+
+	// User list
+	List []User `json:"list"`
+}
 
 // MaxResultsParameter defines model for MaxResultsParameter.
 type MaxResultsParameter = int
@@ -62,34 +89,34 @@ type MaxResultsParameter = int
 // PubkeyParameter defines model for PubkeyParameter.
 type PubkeyParameter = string
 
-// StartTimeParameter defines model for StartTimeParameter.
-type StartTimeParameter = string
+// SinceTimeParameter defines model for SinceTimeParameter.
+type SinceTimeParameter = string
 
-// PostsResponse defines model for PostsResponse.
-type PostsResponse struct {
-	// Number of list
-	Count int `json:"count"`
-
-	// Post list
-	List []Post `json:"list"`
-}
+// UntilTimePatameter defines model for UntilTimePatameter.
+type UntilTimePatameter = string
 
 // PubKeysResponse defines model for PubKeysResponse.
 type PubKeysResponse struct {
+	// Number of pubkeys
+	Count int `json:"count"`
+
 	// User's PublicKeys
-	Pubkeys []string `json:"pubkeys"`
+	Pubkeys Pubkeys `json:"pubkeys"`
 }
 
 // UserResponse defines model for UserResponse.
 type UserResponse = User
 
 // UsersResponse defines model for UsersResponse.
-type UsersResponse struct {
-	// Number of list
-	Count int `json:"count"`
+type UsersResponse = Users
 
-	// User list
-	List []User `json:"list"`
+// UsersTimelineResponse defines model for UsersTimelineResponse.
+type UsersTimelineResponse struct {
+	Paging *Paging `json:"paging,omitempty"`
+	Posts  Posts   `json:"posts"`
+
+	// User's PublicKeys
+	Pubkeys Pubkeys `json:"pubkeys"`
 }
 
 // UsersPubKeyRequest defines model for UsersPubKeyRequest.
@@ -106,11 +133,11 @@ type GetV1TimelinesHomeParams struct {
 	// Specifies the number of Posts to try and retrieve (default 20)
 	MaxResults *MaxResultsParameter `form:"max_results,omitempty" json:"max_results,omitempty"`
 
-	// The oldest or earliest UTC timestamp from which the Posts will be provided
-	StartTime *StartTimeParameter `form:"start_time,omitempty" json:"start_time,omitempty"`
+	// Get posts after that time (include)
+	SinceTime *SinceTimeParameter `form:"since_time,omitempty" json:"since_time,omitempty"`
 
-	// The newest or most recent UTC timestamp from which the Posts will be provided
-	EndTime *EndTimePatameter `form:"end_time,omitempty" json:"end_time,omitempty"`
+	// Get posts up to that time (exclude)
+	UntilTime *UntilTimePatameter `form:"until_time,omitempty" json:"until_time,omitempty"`
 }
 
 // GetV1TimelinesUserParams defines parameters for GetV1TimelinesUser.
@@ -121,11 +148,11 @@ type GetV1TimelinesUserParams struct {
 	// Specifies the number of Posts to try and retrieve (default 20)
 	MaxResults *MaxResultsParameter `form:"max_results,omitempty" json:"max_results,omitempty"`
 
-	// The oldest or earliest UTC timestamp from which the Posts will be provided
-	StartTime *StartTimeParameter `form:"start_time,omitempty" json:"start_time,omitempty"`
+	// Get posts after that time (include)
+	SinceTime *SinceTimeParameter `form:"since_time,omitempty" json:"since_time,omitempty"`
 
-	// The newest or most recent UTC timestamp from which the Posts will be provided
-	EndTime *EndTimePatameter `form:"end_time,omitempty" json:"end_time,omitempty"`
+	// Get posts up to that time (exclude)
+	UntilTime *UntilTimePatameter `form:"until_time,omitempty" json:"until_time,omitempty"`
 }
 
 // GetV1UsersParams defines parameters for GetV1Users.
@@ -196,18 +223,18 @@ func (w *ServerInterfaceWrapper) GetV1TimelinesHome(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter max_results: %s", err))
 	}
 
-	// ------------- Optional query parameter "start_time" -------------
+	// ------------- Optional query parameter "since_time" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "start_time", ctx.QueryParams(), &params.StartTime)
+	err = runtime.BindQueryParameter("form", true, false, "since_time", ctx.QueryParams(), &params.SinceTime)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter start_time: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter since_time: %s", err))
 	}
 
-	// ------------- Optional query parameter "end_time" -------------
+	// ------------- Optional query parameter "until_time" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "end_time", ctx.QueryParams(), &params.EndTime)
+	err = runtime.BindQueryParameter("form", true, false, "until_time", ctx.QueryParams(), &params.UntilTime)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter end_time: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter until_time: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
@@ -235,18 +262,18 @@ func (w *ServerInterfaceWrapper) GetV1TimelinesUser(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter max_results: %s", err))
 	}
 
-	// ------------- Optional query parameter "start_time" -------------
+	// ------------- Optional query parameter "since_time" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "start_time", ctx.QueryParams(), &params.StartTime)
+	err = runtime.BindQueryParameter("form", true, false, "since_time", ctx.QueryParams(), &params.SinceTime)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter start_time: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter since_time: %s", err))
 	}
 
-	// ------------- Optional query parameter "end_time" -------------
+	// ------------- Optional query parameter "until_time" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "end_time", ctx.QueryParams(), &params.EndTime)
+	err = runtime.BindQueryParameter("form", true, false, "until_time", ctx.QueryParams(), &params.UntilTime)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter end_time: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter until_time: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
@@ -357,29 +384,32 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

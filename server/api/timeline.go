@@ -24,10 +24,15 @@ func (h *Handler) GetV1TimelinesHome(c echo.Context, params openapi.GetV1Timelin
 		return err
 	}
 
+	var maxResults = 20
+	if params.MaxResults != nil {
+		maxResults = *params.MaxResults
+	}
+
 	// Get following user's post as timeline
 	posts, err := postService.GetPosts(
 		followingPks,
-		*params.MaxResults,
+		maxResults,
 		nil,
 		nil,
 	)
@@ -57,7 +62,11 @@ func (h *Handler) GetV1TimelinesHome(c echo.Context, params openapi.GetV1Timelin
 
 	return c.JSON(
 		http.StatusOK,
-		ToTimeline(posts, users),
+		ToTimeline(
+			postsPks,
+			posts,
+			users,
+		),
 	)
 }
 

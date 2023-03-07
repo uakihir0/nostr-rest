@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/samber/lo"
-	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -127,75 +126,93 @@ func QuerySyncAllWithGuard(
 
 	var channelCounter int32 = 0
 	channel := make(chan *nostr.Event)
+	stop := make(chan interface{})
+
 	events := make([]*nostr.Event, 0)
+	dones := make([]chan interface{}, 0)
 
 	// Channel close mutex
 	var mu sync.Mutex
-	var isClosed = false
+	var isStopped = false
+	var timeout = 1 * time.Second
 
-	checkChannelClose := func() {
+	afterChannelClose := func() {
 		// Close channel if all subscriptions closed
 		atomic.AddInt32(&channelCounter, 1)
 
 		mu.Lock()
-		if !isClosed && channelCounter == int32(len(cs)) {
-			close(channel)
-			isClosed = true
+		if channelCounter == int32(len(cs)) {
+			if !isStopped {
+				isStopped = true
+				close(stop)
+			}
 		}
 		mu.Unlock()
 	}
 
 	for _, c := range cs {
 		// Timeout occurs if acquisition is not possible
-		ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, timeout)
 		sub := c.Relay.Subscribe(ctx, filters)
 
-		go func() {
+		done := make(chan interface{})
+		dones = append(dones, done)
+
+		go func(done <-chan interface{}) {
+
+			defer func() {
+				afterChannelClose()
+				sub.Unsub()
+				cancel()
+			}()
+
 			for {
 				select {
-				case ev := <-sub.Events:
-					// Send event to channel
-					mu.Lock()
-					if !isClosed {
-						channel <- ev
-					}
-					mu.Unlock()
-
+				// Termination process first
 				case <-sub.EndOfStoredEvents:
-					// Normal termination process
-					checkChannelClose()
-					sub.Unsub()
-					cancel()
+					return
+				case <-ctx.Done():
+					return
+				case <-done:
 					return
 
-				case <-ctx.Done():
-					checkChannelClose()
-					sub.Unsub()
-					return
+				case ev := <-sub.Events:
+					channel <- ev
+					continue
 				}
 			}
-		}()
+		}(done)
 	}
 
-	// Consolidate events
-	for ev := range channel {
-		events = append(events, ev)
+loop:
+	for {
+		select {
+		case <-stop:
+			break loop
 
-		mu.Lock()
-		if !isClosed && expectedEventCount > 0 {
-			// Early termination (got expected data)
-			if len(events) >= expectedEventCount {
-				close(channel)
-				isClosed = true
+		case ev := <-channel:
+			events = append(events, ev)
+
+			mu.Lock()
+			if expectedEventCount > 0 {
+				// Early termination (got expected data)
+				if len(events) >= expectedEventCount {
+					if !isStopped {
+						isStopped = true
+						close(stop)
+
+						// Send done signal to connections.
+						for _, done := range dones {
+							close(done)
+						}
+					}
+					break loop
+				}
 			}
+			mu.Unlock()
+			continue
 		}
-		mu.Unlock()
 	}
-
-	// Sort in descending order of `CreatedAt`
-	sort.Slice(events, func(i, j int) bool {
-		return events[i].CreatedAt.Unix() < events[j].CreatedAt.Unix()
-	})
 
 	return events
 }

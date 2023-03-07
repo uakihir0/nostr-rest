@@ -76,28 +76,28 @@ paths:
       tags: []
       responses:
         '200':
-          $ref: '#/components/responses/PostsResponse'
+          $ref: '#/components/responses/UsersTimelineResponse'
       operationId: get-v1-timelines-home
       description: Get posts of users that the specified user follows.
       parameters:
         - $ref: '#/components/parameters/PubkeyParameter'
         - $ref: '#/components/parameters/MaxResultsParameter'
-        - $ref: '#/components/parameters/StartTimeParameter'
-        - $ref: '#/components/parameters/EndTimePatameter'
+        - $ref: '#/components/parameters/SinceTimeParameter'
+        - $ref: '#/components/parameters/UntilTimePatameter'
   /v1/timelines/user:
     get:
       summary: Get User Timeline
       tags: []
       responses:
         '200':
-          $ref: '#/components/responses/PostsResponse'
+          $ref: '#/components/responses/UsersTimelineResponse'
       operationId: get-v1-timelines-user
       description: Get the posts of the specified user.
       parameters:
         - $ref: '#/components/parameters/PubkeyParameter'
         - $ref: '#/components/parameters/MaxResultsParameter'
-        - $ref: '#/components/parameters/StartTimeParameter'
-        - $ref: '#/components/parameters/EndTimePatameter'
+        - $ref: '#/components/parameters/SinceTimeParameter'
+        - $ref: '#/components/parameters/UntilTimePatameter'
 components:
   schemas:
     User:
@@ -128,6 +128,23 @@ components:
           description: User website url
       required:
         - pubkey
+    Users:
+      title: Users
+      x-stoplight:
+        id: bp69zrtloc3l2
+      type: object
+      properties:
+        list:
+          type: array
+          description: User list
+          items:
+            $ref: '#/components/schemas/User'
+        count:
+          type: integer
+          description: Number of list
+      required:
+        - list
+        - count
     Post:
       title: Post
       x-stoplight:
@@ -150,6 +167,46 @@ components:
         - content
         - user
         - created_at
+    Posts:
+      title: Posts
+      x-stoplight:
+        id: 6p9ql7hi0fmet
+      type: object
+      properties:
+        list:
+          type: array
+          description: Post list
+          items:
+            $ref: '#/components/schemas/Post'
+        count:
+          type: integer
+          description: Number of list
+      required:
+        - list
+        - count
+    Pubkeys:
+      title: Pubkeys
+      x-stoplight:
+        id: x8ox1r4z9rk3a
+      type: array
+      description: User's PublicKeys
+      items:
+        type: string
+    Paging:
+      title: Paging
+      x-stoplight:
+        id: 37mx527m8c8sy
+      type: object
+      properties:
+        past_untile_time:
+          type: string
+          description: Specify when to get past posts from this result
+        future_since_time:
+          type: string
+          description: Specify when to get future posts from this result
+      required:
+        - past_untile_time
+        - future_since_time
   requestBodies:
     UsersPubKeyRequest:
       content:
@@ -173,24 +230,6 @@ components:
                   - 776ea4437354381f14a720be3c476937dce7257ed1073e54a192dbc99f3b7ecc
       description: ''
   responses:
-    UsersResponse:
-      description: ''
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              list:
-                type: array
-                description: User list
-                items:
-                  $ref: '#/components/schemas/User'
-              count:
-                type: integer
-                description: Number of list
-            required:
-              - list
-              - count
     UserResponse:
       description: ''
       content:
@@ -205,30 +244,38 @@ components:
             type: object
             properties:
               pubkeys:
-                type: array
-                description: User's PublicKeys
-                items:
-                  type: string
+                $ref: '#/components/schemas/Pubkeys'
+              count:
+                type: integer
+                description: Number of pubkeys
             required:
               - pubkeys
-    PostsResponse:
-      description: ''
+              - count
+    UsersTimelineResponse:
+      description: Example response
       content:
         application/json:
           schema:
             type: object
             properties:
-              list:
-                type: array
-                description: Post list
-                items:
-                  $ref: '#/components/schemas/Post'
-              count:
-                type: integer
-                description: Number of list
+              posts:
+                $ref: '#/components/schemas/Posts'
+                description: Users timeline posts
+              pubkeys:
+                $ref: '#/components/schemas/Pubkeys'
+                description: Users to get posts
+              paging:
+                $ref: '#/components/schemas/Paging'
+                description: Paging
             required:
-              - list
-              - count
+              - posts
+              - pubkeys
+    UsersResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Users'
   parameters:
     PubkeyParameter:
       name: pubkey
@@ -245,18 +292,19 @@ components:
         type: integer
         minimum: 1
         maximum: 200
+        default: 20
       description: Specifies the number of Posts to try and retrieve (default 20)
-    StartTimeParameter:
+    SinceTimeParameter:
       in: query
       required: false
       schema:
         type: string
-      name: start_time
-      description: The oldest or earliest UTC timestamp from which the Posts will be provided
-    EndTimePatameter:
-      name: end_time
+      name: since_time
+      description: Get posts after that time (include)
+    UntilTimePatameter:
+      name: until_time
       in: query
       required: false
       schema:
         type: string
-      description: The newest or most recent UTC timestamp from which the Posts will be provided
+      description: Get posts up to that time (exclude)

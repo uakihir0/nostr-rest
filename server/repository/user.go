@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -105,6 +104,7 @@ func (r *RelayUserRepository) GetUsers(
 			[]nostr.Filter{{
 				Kinds:   []int{0},
 				Authors: userPKs,
+				Limit:   len(userPKs),
 			}},
 		)
 
@@ -125,10 +125,14 @@ func (r *RelayUserRepository) GetUsers(
 	for _, pk := range pks {
 		user, ok := userMap[pk]
 		if !ok {
-			return nil, fmt.Errorf("not found user data: PK=%s", pk)
+			// Add dummy user object
+			result = append(result,
+				util.GetNoDataUser(pk),
+			)
+		} else {
+			// Append user if present
+			result = append(result, user)
 		}
-		// Append user if present
-		result = append(result, user)
 	}
 
 	return result, nil
