@@ -10,7 +10,7 @@ servers:
 paths:
   /v1/users:
     get:
-      summary: GET Users Profiles
+      summary: GET User Profiles
       tags: []
       responses:
         '200':
@@ -20,14 +20,12 @@ paths:
       parameters:
         - schema:
             type: string
-            minItems: 1
-            maxItems: 100
           in: query
           name: pubkey
           description: Public key of the user to retrieve
           required: true
     post:
-      summary: GET User Profiles
+      summary: GET Users Profiles
       operationId: post-v1-users
       responses:
         '200':
