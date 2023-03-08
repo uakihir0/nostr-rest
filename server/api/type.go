@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/uakihir0/nostr-rest/server/util"
 	"time"
 
 	"github.com/samber/lo"
@@ -63,19 +64,17 @@ func ToTimeline(
 		pk := string(post.UserPubKey)
 		user, ok := userMap[pk]
 
-		if ok {
-			postSlice = append(
-				postSlice,
-				openapi.Post{
-					Id:        string(post.ID),
-					CreatedAt: post.CreatedAt.Format(TimeLayout),
-					Content:   post.Content,
-					User:      *ToUser(user),
-				},
-			)
-		} else {
-			println("User not found: " + pk)
+		if !ok {
+			// User information cannot be obtained
+			user = util.GetNoDataUser(post.UserPubKey)
 		}
+
+		postSlice = append(postSlice, openapi.Post{
+			Id:        string(post.ID),
+			CreatedAt: post.CreatedAt.Format(TimeLayout),
+			Content:   post.Content,
+			User:      *ToUser(user),
+		})
 	}
 
 	postsResponse := openapi.Posts{
