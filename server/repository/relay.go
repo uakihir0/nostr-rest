@@ -18,6 +18,18 @@ type RelayConnection struct {
 	WaitSpan time.Duration
 }
 
+type QueryOptions struct {
+	ExpectedEventCount int
+	TimeoutSeconds     time.Duration
+}
+
+func DefaultQueryOptions() QueryOptions {
+	return QueryOptions{
+		ExpectedEventCount: -1,
+		TimeoutSeconds:     1,
+	}
+}
+
 var connections = map[string]*RelayConnection{}
 
 // GetConnections
@@ -111,16 +123,22 @@ func QuerySyncAll(
 	ctx context.Context,
 	filters nostr.Filters,
 ) []*nostr.Event {
-	return QuerySyncAllWithGuard(ctx, filters, -1)
+
+	return QuerySyncAllWithOptions(
+		ctx, filters, DefaultQueryOptions(),
+	)
 }
 
-// QuerySyncAllWithGuard
+// QuerySyncAllWithOptions
 // Query all relay servers and retrieve results synchronously
-func QuerySyncAllWithGuard(
+func QuerySyncAllWithOptions(
 	ctx context.Context,
 	filters nostr.Filters,
-	expectedEventCount int,
+	options QueryOptions,
 ) []*nostr.Event {
+
+	// Show query
+	fmt.Printf(filters.String() + "\n")
 
 	cs := GetConnections()
 
@@ -134,7 +152,7 @@ func QuerySyncAllWithGuard(
 	// Channel close mutex
 	var mu sync.Mutex
 	var isStopped = false
-	var timeout = 1 * time.Second
+	var timeout = options.TimeoutSeconds * time.Second
 
 	afterChannelClose := func() {
 		// Close channel if all subscriptions closed
@@ -194,9 +212,9 @@ loop:
 			events = append(events, ev)
 
 			mu.Lock()
-			if expectedEventCount > 0 {
+			if options.ExpectedEventCount > 0 {
 				// Early termination (got expected data)
-				if len(events) >= expectedEventCount {
+				if len(events) >= options.ExpectedEventCount {
 					if !isStopped {
 						isStopped = true
 						close(stop)

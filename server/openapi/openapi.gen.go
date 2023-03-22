@@ -161,16 +161,22 @@ type GetV1UsersParams struct {
 	Pubkey string `form:"pubkey" json:"pubkey"`
 }
 
+// GetV1UsersFollowersParams defines parameters for GetV1UsersFollowers.
+type GetV1UsersFollowersParams struct {
+	// Public key of the user
+	Pubkey PubkeyParameter `form:"pubkey" json:"pubkey"`
+}
+
 // GetV1UsersFollowingParams defines parameters for GetV1UsersFollowing.
 type GetV1UsersFollowingParams struct {
 	// Public key of the user
-	Pubkey string `form:"pubkey" json:"pubkey"`
+	Pubkey PubkeyParameter `form:"pubkey" json:"pubkey"`
 }
 
 // GetV1UsersFollowingPubkeysParams defines parameters for GetV1UsersFollowingPubkeys.
 type GetV1UsersFollowingPubkeysParams struct {
 	// Public key of the user
-	Pubkey string `form:"pubkey" json:"pubkey"`
+	Pubkey PubkeyParameter `form:"pubkey" json:"pubkey"`
 }
 
 // PostV1UsersJSONRequestBody defines body for PostV1Users for application/json ContentType.
@@ -184,12 +190,15 @@ type ServerInterface interface {
 	// Get User Timeline
 	// (GET /v1/timelines/user)
 	GetV1TimelinesUser(ctx echo.Context, params GetV1TimelinesUserParams) error
-	// GET Users Profiles
+	// GET User Profiles
 	// (GET /v1/users)
 	GetV1Users(ctx echo.Context, params GetV1UsersParams) error
 	// GET Users Profiles
 	// (POST /v1/users)
 	PostV1Users(ctx echo.Context) error
+	// Get User's Followers
+	// (GET /v1/users/followers)
+	GetV1UsersFollowers(ctx echo.Context, params GetV1UsersFollowersParams) error
 	// Get Following Users
 	// (GET /v1/users/following)
 	GetV1UsersFollowing(ctx echo.Context, params GetV1UsersFollowingParams) error
@@ -308,6 +317,24 @@ func (w *ServerInterfaceWrapper) PostV1Users(ctx echo.Context) error {
 	return err
 }
 
+// GetV1UsersFollowers converts echo context to params.
+func (w *ServerInterfaceWrapper) GetV1UsersFollowers(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetV1UsersFollowersParams
+	// ------------- Required query parameter "pubkey" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "pubkey", ctx.QueryParams(), &params.Pubkey)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter pubkey: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetV1UsersFollowers(ctx, params)
+	return err
+}
+
 // GetV1UsersFollowing converts echo context to params.
 func (w *ServerInterfaceWrapper) GetV1UsersFollowing(ctx echo.Context) error {
 	var err error
@@ -376,6 +403,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/timelines/user", wrapper.GetV1TimelinesUser)
 	router.GET(baseURL+"/v1/users", wrapper.GetV1Users)
 	router.POST(baseURL+"/v1/users", wrapper.PostV1Users)
+	router.GET(baseURL+"/v1/users/followers", wrapper.GetV1UsersFollowers)
 	router.GET(baseURL+"/v1/users/following", wrapper.GetV1UsersFollowing)
 	router.GET(baseURL+"/v1/users/following/pubkeys", wrapper.GetV1UsersFollowingPubkeys)
 
@@ -384,32 +412,32 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

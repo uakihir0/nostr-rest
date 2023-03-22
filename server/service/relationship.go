@@ -33,3 +33,14 @@ func (s *RelationShipService) GetFollowingPubKeys(pk domain.UserPubKey) ([]domai
 	}
 	return followings, nil
 }
+
+// GetFollowersPubKeys
+// Get the public key of a user who follows a specific user.
+func (s *RelationShipService) GetFollowersPubKeys(pk domain.UserPubKey) ([]domain.UserPubKey, error) {
+
+	followings, err := s.relationShipRepository.GetFollowers(pk)
+	if err != nil {
+		return nil, err
+	}
+	return followings, nil
+}

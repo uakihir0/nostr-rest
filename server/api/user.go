@@ -57,7 +57,7 @@ func (h *Handler) PostV1Users(c echo.Context) error {
 }
 
 // GetV1UsersFollowing
-// Get User's following
+// Get following users
 func (h *Handler) GetV1UsersFollowing(c echo.Context, params openapi.GetV1UsersFollowingParams) error {
 	userService := injection.UserService()
 	relationShipService := injection.RelationShipService()
@@ -97,5 +97,31 @@ func (h *Handler) GetV1UsersFollowingPubkeys(c echo.Context, params openapi.GetV
 	return c.JSON(
 		http.StatusOK,
 		ToPubKeysResponse(pks),
+	)
+}
+
+// GetV1UsersFollowers
+// Get user's followers
+func (h *Handler) GetV1UsersFollowers(c echo.Context, params openapi.GetV1UsersFollowersParams) error {
+	userService := injection.UserService()
+	relationShipService := injection.RelationShipService()
+
+	pk := domain.UserPubKey(params.Pubkey)
+
+	// Get public keys first
+	pks, err := relationShipService.GetFollowersPubKeys(pk)
+	if err != nil {
+		return err
+	}
+
+	// Get user objects from public keys
+	users, err := userService.GetUsers(pks)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(
+		http.StatusOK,
+		ToUsersResponse(users),
 	)
 }

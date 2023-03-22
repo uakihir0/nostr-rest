@@ -18,12 +18,7 @@ paths:
       operationId: get-v1-users
       description: Specify public keysfor a user to obtain user profile.
       parameters:
-        - schema:
-            type: string
-          in: query
-          name: pubkey
-          description: Public key of the user to retrieve
-          required: true
+        - $ref: '#/components/parameters/PubkeyParameter'
     post:
       summary: GET Users Profiles
       operationId: post-v1-users
@@ -44,12 +39,7 @@ paths:
           $ref: '#/components/responses/UsersResponse'
       operationId: get-v1-users-following
       parameters:
-        - schema:
-            type: string
-          in: query
-          name: pubkey
-          description: Public key of the user
-          required: true
+        - $ref: '#/components/parameters/PubkeyParameter'
       description: Get users followed by the specified user.
   /v1/users/following/pubkeys:
     get:
@@ -61,13 +51,19 @@ paths:
       operationId: get-v1-users-following-pubkeys
       description: Get user's public keys followed by the specified user.
       parameters:
-        - schema:
-            type: string
-          in: query
-          name: pubkey
-          description: Public key of the user
-          required: true
+        - $ref: '#/components/parameters/PubkeyParameter'
     parameters: []
+  /v1/users/followers:
+    get:
+      summary: Get User's Followers
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/UsersResponse'
+      operationId: get-v1-users-followers
+      parameters:
+        - $ref: '#/components/parameters/PubkeyParameter'
+      description: Get users following the specified user.
   /v1/timelines/home:
     get:
       summary: Get Home Timeline
@@ -281,6 +277,7 @@ components:
       required: true
       schema:
         type: string
+        example: 776ea4437354381f14a720be3c476937dce7257ed1073e54a192dbc99f3b7ecc
       description: Public key of the user
     MaxResultsParameter:
       name: max_results
