@@ -64,6 +64,17 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PubkeyParameter'
       description: Get users following the specified user.
+  /v1/users/followers/pubkeys:
+    get:
+      summary: Get User's Follower's PublicKeys
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/PubKeysResponse'
+      operationId: get-v1-users-followers-pubkeys
+      description: Get user's public keys following the specified user.
+      parameters:
+        - $ref: '#/components/parameters/PubkeyParameter'
   /v1/timelines/home:
     get:
       summary: Get Home Timeline

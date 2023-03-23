@@ -125,3 +125,21 @@ func (h *Handler) GetV1UsersFollowers(c echo.Context, params openapi.GetV1UsersF
 		ToUsersResponse(users),
 	)
 }
+
+// GetV1UsersFollowersPubkeys
+// Get user's follower's public keys
+func (h *Handler) GetV1UsersFollowersPubkeys(c echo.Context, params openapi.GetV1UsersFollowersPubkeysParams) error {
+	relationShipService := injection.RelationShipService()
+
+	pk := domain.UserPubKey(params.Pubkey)
+
+	pks, err := relationShipService.GetFollowersPubKeys(pk)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(
+		http.StatusOK,
+		ToPubKeysResponse(pks),
+	)
+}
