@@ -103,6 +103,17 @@ paths:
         - $ref: '#/components/parameters/MaxResultsParameter'
         - $ref: '#/components/parameters/SinceTimeParameter'
         - $ref: '#/components/parameters/UntilTimePatameter'
+  /v1/posts:
+    post:
+      summary: Post Comment
+      operationId: post-v1-posts
+      description: Post comment.
+      requestBody:
+        $ref: '#/components/requestBodies/PostCommentRequest'
+      responses:
+        '200':
+          description: OK
+    parameters: []
 components:
   schemas:
     User:
@@ -212,6 +223,22 @@ components:
       required:
         - past_untile_time
         - future_since_time
+    Keys:
+      title: Keys
+      x-stoplight:
+        id: lthyuxxamyzyi
+      type: object
+      properties:
+        public:
+          type: string
+        secret:
+          type: string
+      required:
+        - public
+        - secret
+      examples:
+        - public: d62f8a6367c9da4a564a9aad30d1fd86afa610c227be01b756774fdab05ea9fc
+          secret: 31c6e75c10c8f0a5e7592e25ae60be510eca586d2015be76f298f3c346d50f2c
   requestBodies:
     UsersPubKeyRequest:
       content:
@@ -234,6 +261,19 @@ components:
                 pubkeys:
                   - 776ea4437354381f14a720be3c476937dce7257ed1073e54a192dbc99f3b7ecc
       description: ''
+    PostCommentRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              text:
+                type: string
+              keys:
+                $ref: '#/components/schemas/Keys'
+            required:
+              - text
+              - keys
   responses:
     UserResponse:
       description: ''
@@ -281,6 +321,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Users'
+    PostResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Post'
   parameters:
     PubkeyParameter:
       name: pubkey

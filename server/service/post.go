@@ -26,6 +26,23 @@ func NewPostService(
 	)
 }
 
+// SendPost
+func (s *PostService) SendPost(
+	pk domain.UserPubKey,
+	sk domain.UserSecretKey,
+	text string,
+) error {
+
+	err := s.postRepository.SendPost(
+		pk, sk, text,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GetPosts
 // Results return in descending order of creation time.
 func (s *PostService) GetPosts(

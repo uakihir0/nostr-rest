@@ -18,6 +18,9 @@ type PostWithUser struct {
 
 type PostRepository interface {
 
+	// SendPost
+	SendPost(UserPubKey, UserSecretKey, string) error
+
 	// GetPosts
 	GetPosts([]UserPubKey, int, *time.Time, *time.Time) ([]*Post, error)
 }

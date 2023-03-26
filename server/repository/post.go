@@ -25,6 +25,34 @@ func NewRelayPostRepository() *RelayPostRepository {
 	)
 }
 
+// SendPost
+func (r *RelayPostRepository) SendPost(
+	pk domain.UserPubKey,
+	sk domain.UserSecretKey,
+	text string,
+) error {
+
+	ev := nostr.Event{
+		PubKey:    string(pk),
+		CreatedAt: time.Now(),
+		Kind:      1,
+		Tags:      nil,
+		Content:   text,
+	}
+
+	err := ev.Sign(string(sk))
+	if err != nil {
+		return err
+	}
+
+	SentEventAll(
+		context.Background(),
+		ev,
+	)
+
+	return nil
+}
+
 // GetPosts
 func (r *RelayPostRepository) GetPosts(
 	pks []domain.UserPubKey,

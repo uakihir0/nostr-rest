@@ -234,3 +234,60 @@ loop:
 
 	return events
 }
+
+// SentEventAll
+func SentEventAll(
+	ctx context.Context,
+	event nostr.Event,
+) bool {
+
+	cs := GetConnections()
+
+	var channelCounter int32 = 0
+	var successCounter int32 = 0
+	channel := make(chan nostr.Status)
+	stop := make(chan interface{})
+
+	// Channel close mutex
+	var mu sync.Mutex
+	var isStopped = false
+
+	afterChannelClose := func() {
+		// Close channel if all subscriptions closed
+		atomic.AddInt32(&channelCounter, 1)
+
+		mu.Lock()
+		if channelCounter == int32(len(cs)) {
+			if !isStopped {
+				isStopped = true
+				close(stop)
+			}
+		}
+		mu.Unlock()
+	}
+
+	// Publish events to all servers
+	for _, c := range cs {
+		go func(c *RelayConnection) {
+			channel <- c.Relay.Publish(ctx, event)
+			afterChannelClose()
+		}(c)
+	}
+
+loop:
+	for {
+		select {
+		case <-stop:
+			break loop
+
+		case status := <-channel:
+			// Increment success counter if sends succeeded
+			if status == nostr.PublishStatusSucceeded {
+				successCounter++
+			}
+		}
+	}
+
+	// Mark success under following condition
+	return successCounter >= (channelCounter / 2)
+}
