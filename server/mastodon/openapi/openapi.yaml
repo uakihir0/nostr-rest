@@ -1,0 +1,372 @@
+openapi: 3.1.0
+info:
+  title: MastodonCompatibleAPI
+  version: '1.0'
+  summary: MastodonCompatibleAPI
+  description: Mastodon Compatible API for Nostr.
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  /m/api/v1/accounts/verify_credentials:
+    get:
+      summary: VerifyCredentials
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredentialAccount'
+      operationId: get-m-api-v1-accounts-verify_credentials
+    parameters: []
+components:
+  schemas:
+    Account:
+      title: Account
+      type: object
+      examples:
+        - id: '23634'
+          username: noiob
+          acct: noiob@awoo.space
+          display_name: ikea shark fan account
+          locked: false
+          bot: false
+          created_at: '2017-02-08T02:00:53.274Z'
+          note: '<p>:ms_rainbow_flag:​ :ms_bisexual_flagweb:​ :ms_nonbinary_flag:​ <a href="https://awoo.space/tags/awoo" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>awoo</span}.space <a href="https://awoo.space/tags/admin" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>admin</span} ~ <a href="https://awoo.space/tags/bi" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>bi</span} ~ <a href="https://awoo.space/tags/nonbinary" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>nonbinary</span} ~ compsci student ~ likes video <a href="https://awoo.space/tags/games" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>games</span} and weird/ old electronics and will post obsessively about both ~ avatar by <span class="h-card"><a href="https://weirder.earth/@dzuk" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>dzuk</span}</span></p>'
+          url: 'https://awoo.space/@noiob'
+          avatar: 'https://files.mastodon.social/accounts/avatars/000/023/634/original/6ca8804dc46800ad.png'
+          avatar_static: 'https://files.mastodon.social/accounts/avatars/000/023/634/original/6ca8804dc46800ad.png'
+          header: 'https://files.mastodon.social/accounts/headers/000/023/634/original/256eb8d7ac40f49a.png'
+          header_static: 'https://files.mastodon.social/accounts/headers/000/023/634/original/256eb8d7ac40f49a.png'
+          followers_count: 547
+          following_count: 404
+          statuses_count: 28468
+          last_status_at: '2019-11-17T00:02:23.693Z'
+          emojis:
+            - shortcode: ms_rainbow_flag
+              url: 'https://files.mastodon.social/custom_emojis/images/000/028/691/original/6de008d6281f4f59.png'
+              static_url: 'https://files.mastodon.social/custom_emojis/images/000/028/691/static/6de008d6281f4f59.png'
+              visible_in_picker: true
+            - shortcode: ms_bisexual_flag
+              url: 'https://files.mastodon.social/custom_emojis/images/000/050/744/original/02f94a5fca7eaf78.png'
+              static_url: 'https://files.mastodon.social/custom_emojis/images/000/050/744/static/02f94a5fca7eaf78.png'
+              visible_in_picker: true
+            - shortcode: ms_nonbinary_flag
+              url: 'https://files.mastodon.social/custom_emojis/images/000/105/099/original/8106088bd4782072.png'
+              static_url: 'https://files.mastodon.social/custom_emojis/images/000/105/099/static/8106088bd4782072.png'
+              visible_in_picker: true
+          fields:
+            - name: Pronouns
+              value: they/them
+              verified_at: null
+            - name: Alt
+              value: '<span class="h-card"><a href="https://cybre.space/@noiob" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>noiob</span}</span>'
+              verified_at: null
+            - name: Bots
+              value: '<span class="h-card"><a href="https://botsin.space/@darksouls" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>darksouls</span}</span>, <span class="h-card"><a href="https://botsin.space/@nierautomata" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>nierautomata</span}</span>, <span class="h-card"><a href="https://mastodon.social/@fedi" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>fedi</span}</span>, code for <span class="h-card"><a href="https://botsin.space/@awoobot" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>awoobot</span}</span>'
+              verified_at: null
+            - name: Website
+              value: '<a href="http://shork.xyz" rel="nofollow noopener noreferrer" target="_blank"><span class="invisible">http://</span><span class="">shork.xyz</span><span class="invisible"></span}'
+              verified_at: '2019-11-10T10:31:10.744+00:00'
+      properties:
+        id:
+          type: string
+          description: The account id.
+        username:
+          type: string
+          description: 'The username of the account, not including domain.'
+        acct:
+          type: string
+          description: 'The Webfinger account URI. Equal to username for local users, or username@domain for remote users.'
+        url:
+          type: string
+          description: The location of the user’s profile page.
+        display_name:
+          type: string
+          description: The profile’s display name.
+        note:
+          type: string
+          description: The profile’s bio or description. (HTML)
+        avatar:
+          type: string
+          description: An image icon that is shown next to statuses and in the profile. (URL)
+        avatar_static:
+          type: string
+          description: A static version of the avatar. Equal to avatar if its value is a static image; different if avatar is an animated GIF.
+        header:
+          type: string
+          description: An image banner that is shown above the profile and in profile cards.
+        header_static:
+          type: string
+          description: A static version of the header. Equal to header if its value is a static image; different if header is an animated GIF.
+        locked:
+          type: boolean
+          description: Whether the account manually approves follow requests.
+        fields:
+          type: array
+          description: Custom emoji entities to be used when rendering the profile.
+          items:
+            $ref: '#/components/schemas/Field'
+        emojis:
+          type: array
+          description: Custom emoji entities to be used when rendering the profile.
+          items:
+            $ref: '#/components/schemas/CustomEmoji'
+        bot:
+          type: boolean
+          description: 'Indicates that the account may perform automated actions, may not be monitored, or identifies'
+        group:
+          type: boolean
+          description: Indicates that the account represents a Group actor.
+        discoverable:
+          type: boolean
+          nullable: true
+          description: Whether the account has opted into discovery features such as the profile directory.
+        noindex:
+          type: boolean
+          nullable: true
+          description: Whether the local user has opted out of being indexed by search engines.
+        moved:
+          description: Indicates that the profile is currently inactive and that its user has moved to a new account.
+          type: boolean
+          nullable: true
+        suspended:
+          type: boolean
+          description: An extra attribute returned only when an account is suspended.
+        limited:
+          type: boolean
+          description: 'An extra attribute returned only when an account is silenced. If true, indicates that the account should be hidden behind a warning screen.'
+        created_at:
+          type: string
+          description: When the account was created. (ISO 8601)
+        last_status_at:
+          type: string
+          nullable: true
+          description: When the most recent status was posted. (ISO 8601)
+        statuses_count:
+          type: integer
+          description: How many statuses are attached to this account.
+        followers_count:
+          type: integer
+          description: The reported followers of this profile.
+        following_count:
+          type: integer
+          description: The reported follows of this profile.
+      required:
+        - id
+        - username
+        - acct
+        - url
+        - display_name
+        - note
+        - avatar
+        - avatar_static
+        - header
+        - header_static
+        - locked
+        - fields
+        - emojis
+        - bot
+        - group
+        - discoverable
+        - created_at
+        - last_status_at
+        - statuses_count
+        - followers_count
+        - following_count
+    CredentialAccount:
+      allOf:
+        - $ref: '#/components/schemas/Account'
+        - type: object
+          properties:
+            role:
+              $ref: '#/components/schemas/Role'
+              description: The role assigned to the currently authorized user.
+            source:
+              $ref: '#/components/schemas/Source'
+              description: An extra attribute that contains source values to be used with API methods that verify credentials and update credentials.
+          required:
+            - role
+            - source
+      examples:
+        - id: '23634'
+          username: noiob
+          acct: noiob@awoo.space
+          display_name: ikea shark fan account
+          locked: false
+          bot: false
+          created_at: '2017-02-08T02:00:53.274Z'
+          note: '<p>:ms_rainbow_flag:​ :ms_bisexual_flagweb:​ :ms_nonbinary_flag:​ <a href="https://awoo.space/tags/awoo" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>awoo</span}.space <a href="https://awoo.space/tags/admin" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>admin</span} ~ <a href="https://awoo.space/tags/bi" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>bi</span} ~ <a href="https://awoo.space/tags/nonbinary" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>nonbinary</span} ~ compsci student ~ likes video <a href="https://awoo.space/tags/games" class="mention hashtag" rel="nofollow noopener noreferrer" target="_blank">#<span>games</span} and weird/ old electronics and will post obsessively about both ~ avatar by <span class="h-card"><a href="https://weirder.earth/@dzuk" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>dzuk</span}</span></p>'
+          url: 'https://awoo.space/@noiob'
+          avatar: 'https://files.mastodon.social/accounts/avatars/000/023/634/original/6ca8804dc46800ad.png'
+          avatar_static: 'https://files.mastodon.social/accounts/avatars/000/023/634/original/6ca8804dc46800ad.png'
+          header: 'https://files.mastodon.social/accounts/headers/000/023/634/original/256eb8d7ac40f49a.png'
+          header_static: 'https://files.mastodon.social/accounts/headers/000/023/634/original/256eb8d7ac40f49a.png'
+          followers_count: 547
+          following_count: 404
+          statuses_count: 28468
+          last_status_at: '2019-11-17T00:02:23.693Z'
+          emojis:
+            - shortcode: ms_rainbow_flag
+              url: 'https://files.mastodon.social/custom_emojis/images/000/028/691/original/6de008d6281f4f59.png'
+              static_url: 'https://files.mastodon.social/custom_emojis/images/000/028/691/static/6de008d6281f4f59.png'
+              visible_in_picker: true
+            - shortcode: ms_bisexual_flag
+              url: 'https://files.mastodon.social/custom_emojis/images/000/050/744/original/02f94a5fca7eaf78.png'
+              static_url: 'https://files.mastodon.social/custom_emojis/images/000/050/744/static/02f94a5fca7eaf78.png'
+              visible_in_picker: true
+            - shortcode: ms_nonbinary_flag
+              url: 'https://files.mastodon.social/custom_emojis/images/000/105/099/original/8106088bd4782072.png'
+              static_url: 'https://files.mastodon.social/custom_emojis/images/000/105/099/static/8106088bd4782072.png'
+              visible_in_picker: true
+          fields:
+            - name: Pronouns
+              value: they/them
+              verified_at: null
+            - name: Alt
+              value: '<span class="h-card"><a href="https://cybre.space/@noiob" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>noiob</span}</span>'
+              verified_at: null
+            - name: Bots
+              value: '<span class="h-card"><a href="https://botsin.space/@darksouls" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>darksouls</span}</span>, <span class="h-card"><a href="https://botsin.space/@nierautomata" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>nierautomata</span}</span>, <span class="h-card"><a href="https://mastodon.social/@fedi" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>fedi</span}</span>, code for <span class="h-card"><a href="https://botsin.space/@awoobot" class="u-url mention" rel="nofollow noopener noreferrer" target="_blank">@<span>awoobot</span}</span>'
+              verified_at: null
+            - name: Website
+              value: '<a href="http://shork.xyz" rel="nofollow noopener noreferrer" target="_blank"><span class="invisible">http://</span><span class="">shork.xyz</span><span class="invisible"></span}'
+              verified_at: '2019-11-10T10:31:10.744+00:00'
+          role:
+            id: 0
+            name: string
+            color: string
+            permissions: 0
+            highlighted: true
+          source:
+            note: string
+            fields:
+              - name: Website
+                value: 'https://trwnh.com'
+                verified_at: '2019-08-29T04:14:55.571+00:00'
+            privacy: public
+            sensitive: true
+            language: string
+            follow_requests_count: 0
+    Field:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The key of a given field’s key-value pair.
+        value:
+          type: string
+          description: The value associated with the name key.
+        verified_at:
+          type: string
+          nullable: true
+          description: Timestamp of when the server verified a URL value for a rel=“me” link.
+      required:
+        - name
+        - value
+        - verified_at
+      examples:
+        - name: Website
+          value: 'https://trwnh.com'
+          verified_at: '2019-08-29T04:14:55.571+00:00'
+    CustomEmoji:
+      type: object
+      properties:
+        shortcode:
+          type: string
+          description: The name of the custom emoji.
+        url:
+          type: string
+          description: A link to the custom emoji.
+        static_url:
+          type: string
+          description: A link to a static copy of the custom emoji.
+        visible_in_picker:
+          type: boolean
+          description: Whether this Emoji should be visible in the picker or unlisted.
+        category:
+          type: string
+          description: Used for sorting custom emoji in the picker.
+      required:
+        - shortcode
+        - url
+        - static_url
+        - visible_in_picker
+        - category
+      examples:
+        - shortcode: blobaww
+          url: 'https://files.mastodon.social/custom_emojis/images/000/011/739/original/blobaww.png'
+          static_url: 'https://files.mastodon.social/custom_emojis/images/000/011/739/static/blobaww.png'
+          visible_in_picker: true
+          category: Blobs
+    Source:
+      title: Source
+      type: object
+      properties:
+        note:
+          type: string
+          description: 'Profile bio, in plain-text instead of in HTML.'
+        fields:
+          type: array
+          description: Metadata about the account.
+          items:
+            $ref: '#/components/schemas/Field'
+        privacy:
+          type: string
+          enum:
+            - public
+            - unlisted
+            - private
+            - direct
+          description: The default post privacy to be used for new statuses.
+        sensitive:
+          type: boolean
+          description: Whether new statuses should be marked sensitive by default.
+        language:
+          type: string
+          description: The default posting language for new statuses. (ISO 639-1 language two-letter code) or empty string.
+        follow_requests_count:
+          type: integer
+          description: The number of pending follow requests.
+      required:
+        - note
+        - fields
+        - privacy
+        - sensitive
+        - language
+        - follow_requests_count
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the Role in the database.
+        name:
+          type: string
+          description: The name of the role.
+        color:
+          type: string
+          description: 'The hex code assigned to this role. If no hex code is assigned, the string will be empty.'
+        permissions:
+          type: integer
+          description: A bitmask that represents the sum of all permissions granted to the role.
+        highlighted:
+          type: boolean
+          description: ' Whether the role is publicly visible as a badge on user profiles.'
+      required:
+        - id
+        - name
+        - color
+        - permissions
+        - highlighted
+      examples:
+        - id: 3
+          name: Owner
+          color: '#ff3838'
+          permissions: 1048575
+          highlighted: true
+  securitySchemes:
+    NPubOrNSec:
+      type: http
+      scheme: bearer

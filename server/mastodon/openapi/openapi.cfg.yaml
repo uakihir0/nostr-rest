@@ -1,0 +1,6 @@
+package: mopenapi
+generate:
+  models: true
+  echo-server: true
+  embedded-spec: true
+output: openapi.gen.go
