@@ -146,8 +146,6 @@ components:
         - pubkey
     Users:
       title: Users
-      x-stoplight:
-        id: bp69zrtloc3l2
       type: object
       properties:
         list:
@@ -163,8 +161,6 @@ components:
         - count
     Post:
       title: Post
-      x-stoplight:
-        id: zo0wtfbsq7tq3
       type: object
       properties:
         id:
@@ -185,8 +181,6 @@ components:
         - created_at
     Posts:
       title: Posts
-      x-stoplight:
-        id: 6p9ql7hi0fmet
       type: object
       properties:
         list:
@@ -202,16 +196,12 @@ components:
         - count
     Pubkeys:
       title: Pubkeys
-      x-stoplight:
-        id: x8ox1r4z9rk3a
       type: array
       description: User's PublicKeys
       items:
         type: string
     Paging:
       title: Paging
-      x-stoplight:
-        id: 37mx527m8c8sy
       type: object
       properties:
         past_untile_time:
@@ -225,8 +215,6 @@ components:
         - future_since_time
     Keys:
       title: Keys
-      x-stoplight:
-        id: lthyuxxamyzyi
       type: object
       properties:
         public:
