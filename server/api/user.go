@@ -12,7 +12,7 @@ import (
 
 // GetV1Users
 // GET Users Profiles
-func (h *Handler) GetV1Users(c echo.Context, params openapi.GetV1UsersParams) error {
+func (h *SimpleHandler) GetV1Users(c echo.Context, params openapi.GetV1UsersParams) error {
 	userService := injection.UserService()
 
 	pks := []domain.UserPubKey{
@@ -32,7 +32,7 @@ func (h *Handler) GetV1Users(c echo.Context, params openapi.GetV1UsersParams) er
 
 // PostV1Users
 // GET User Profiles
-func (h *Handler) PostV1Users(c echo.Context) error {
+func (h *SimpleHandler) PostV1Users(c echo.Context) error {
 	userService := injection.UserService()
 
 	request := new(openapi.UsersPubKeyRequest)
@@ -58,7 +58,7 @@ func (h *Handler) PostV1Users(c echo.Context) error {
 
 // GetV1UsersFollowing
 // Get following users
-func (h *Handler) GetV1UsersFollowing(c echo.Context, params openapi.GetV1UsersFollowingParams) error {
+func (h *SimpleHandler) GetV1UsersFollowing(c echo.Context, params openapi.GetV1UsersFollowingParams) error {
 	userService := injection.UserService()
 	relationShipService := injection.RelationShipService()
 
@@ -84,7 +84,7 @@ func (h *Handler) GetV1UsersFollowing(c echo.Context, params openapi.GetV1UsersF
 
 // GetV1UsersFollowingPubkeys
 // Get User's following public keys
-func (h *Handler) GetV1UsersFollowingPubkeys(c echo.Context, params openapi.GetV1UsersFollowingPubkeysParams) error {
+func (h *SimpleHandler) GetV1UsersFollowingPubkeys(c echo.Context, params openapi.GetV1UsersFollowingPubkeysParams) error {
 	relationShipService := injection.RelationShipService()
 
 	pk := domain.UserPubKey(params.Pubkey)
@@ -102,7 +102,7 @@ func (h *Handler) GetV1UsersFollowingPubkeys(c echo.Context, params openapi.GetV
 
 // GetV1UsersFollowers
 // Get user's followers
-func (h *Handler) GetV1UsersFollowers(c echo.Context, params openapi.GetV1UsersFollowersParams) error {
+func (h *SimpleHandler) GetV1UsersFollowers(c echo.Context, params openapi.GetV1UsersFollowersParams) error {
 	userService := injection.UserService()
 	relationShipService := injection.RelationShipService()
 
@@ -128,7 +128,7 @@ func (h *Handler) GetV1UsersFollowers(c echo.Context, params openapi.GetV1UsersF
 
 // GetV1UsersFollowersPubkeys
 // Get user's follower's public keys
-func (h *Handler) GetV1UsersFollowersPubkeys(c echo.Context, params openapi.GetV1UsersFollowersPubkeysParams) error {
+func (h *SimpleHandler) GetV1UsersFollowersPubkeys(c echo.Context, params openapi.GetV1UsersFollowersPubkeysParams) error {
 	relationShipService := injection.RelationShipService()
 
 	pk := domain.UserPubKey(params.Pubkey)

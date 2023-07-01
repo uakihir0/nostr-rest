@@ -8,7 +8,7 @@ import (
 )
 
 // PostV1Posts
-func (h *Handler) PostV1Posts(c echo.Context) error {
+func (h *SimpleHandler) PostV1Posts(c echo.Context) error {
 	postService := injection.PostService()
 
 	request := new(openapi.PostCommentRequest)

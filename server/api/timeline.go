@@ -12,7 +12,7 @@ import (
 )
 
 // GetV1TimelinesHome
-func (h *Handler) GetV1TimelinesHome(c echo.Context, params openapi.GetV1TimelinesHomeParams) error {
+func (h *SimpleHandler) GetV1TimelinesHome(c echo.Context, params openapi.GetV1TimelinesHomeParams) error {
 	relationShipService := injection.RelationShipService()
 	postService := injection.PostService()
 	userService := injection.UserService()
@@ -65,7 +65,7 @@ func (h *Handler) GetV1TimelinesHome(c echo.Context, params openapi.GetV1Timelin
 }
 
 // GetV1TimelinesUser
-func (h *Handler) GetV1TimelinesUser(c echo.Context, params openapi.GetV1TimelinesUserParams) error {
+func (h *SimpleHandler) GetV1TimelinesUser(c echo.Context, params openapi.GetV1TimelinesUserParams) error {
 	postService := injection.PostService()
 	userService := injection.UserService()
 
