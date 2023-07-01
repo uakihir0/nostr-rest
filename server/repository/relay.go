@@ -3,11 +3,13 @@ package repository
 import (
 	"context"
 	"fmt"
-	"github.com/nbd-wtf/go-nostr"
-	"github.com/samber/lo"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/nbd-wtf/go-nostr"
+	"github.com/samber/lo"
 )
 
 type RelayConnection struct {
@@ -16,6 +18,7 @@ type RelayConnection struct {
 	Context  *context.Context
 	Cancel   *context.CancelFunc
 	WaitSpan time.Duration
+	Error    chan error
 }
 
 type QueryOptions struct {
@@ -26,7 +29,7 @@ type QueryOptions struct {
 func DefaultQueryOptions() QueryOptions {
 	return QueryOptions{
 		ExpectedEventCount: -1,
-		TimeoutSeconds:     1,
+		TimeoutSeconds:     5,
 	}
 }
 
@@ -54,7 +57,10 @@ func StartAllRelayServers(urls []string) {
 // Connect to relay server.
 func StartRelayServer(url string) {
 
-	c := &RelayConnection{URL: url, WaitSpan: 1}
+	c := &RelayConnection{
+		URL: url, WaitSpan: 1,
+		Error: make(chan error),
+	}
 	connections[url] = c
 
 	go func() {
@@ -70,8 +76,8 @@ func StartRelayServer(url string) {
 			fmt.Printf("> connection success: %s\n", c.URL)
 
 			select {
-			// Waiting for connection error
-			case err = <-c.Relay.ConnectionError:
+			// Reset when error occurs
+			case err = <-c.Error:
 				ClearRelay(c)
 
 				PrintConnectionError(c, err)
@@ -171,10 +177,19 @@ func QuerySyncAllWithOptions(
 	for _, c := range cs {
 		// Timeout occurs if acquisition is not possible
 		ctx, cancel := context.WithTimeout(ctx, timeout)
-		sub := c.Relay.Subscribe(ctx, filters)
+		sub, err := c.Relay.Subscribe(ctx, filters)
+		if err != nil {
+			go afterChannelClose()
+			c.Error <- err
+			cancel()
+			continue
+		}
 
 		done := make(chan interface{})
 		dones = append(dones, done)
+
+		tUrl := c.URL
+		start := time.Now()
 
 		go func(done <-chan interface{}) {
 
@@ -187,11 +202,20 @@ func QuerySyncAllWithOptions(
 			for {
 				select {
 				// Termination process first
+				// End of Contents (Real All)
 				case <-sub.EndOfStoredEvents:
+					println(">>> " + tUrl + " >> EndOfStoredEvents")
+					println(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())))
 					return
+					// Context Canceled
 				case <-ctx.Done():
+					println(">>> " + tUrl + " >> context.DONE")
+					println(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())))
 					return
+					// Force Termination
 				case <-done:
+					println(">>> " + tUrl + " >> done")
+					println(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())))
 					return
 
 				case ev := <-sub.Events:
@@ -213,6 +237,7 @@ loop:
 
 			mu.Lock()
 			if options.ExpectedEventCount > 0 {
+
 				// Early termination (got expected data)
 				if len(events) >= options.ExpectedEventCount {
 					if !isStopped {
@@ -269,7 +294,11 @@ func SentEventAll(
 	// Publish events to all servers
 	for _, c := range cs {
 		go func(c *RelayConnection) {
-			channel <- c.Relay.Publish(ctx, event)
+			status, err := c.Relay.Publish(ctx, event)
+			channel <- status
+			if err != nil {
+				c.Error <- err
+			}
 			afterChannelClose()
 		}(c)
 	}

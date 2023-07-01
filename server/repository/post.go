@@ -34,7 +34,7 @@ func (r *RelayPostRepository) SendPost(
 
 	ev := nostr.Event{
 		PubKey:    string(pk),
-		CreatedAt: time.Now(),
+		CreatedAt: nostr.Timestamp(time.Now().Unix()),
 		Kind:      1,
 		Tags:      nil,
 		Content:   text,
@@ -73,10 +73,10 @@ func (r *RelayPostRepository) GetPosts(
 	}
 
 	if sinceTime != nil {
-		filter.Since = sinceTime
+		filter.Since = lo.ToPtr(nostr.Timestamp(sinceTime.Unix()))
 	}
 	if untilTime != nil {
-		filter.Until = untilTime
+		filter.Until = lo.ToPtr(nostr.Timestamp(untilTime.Unix()))
 	}
 
 	events := QuerySyncAll(
