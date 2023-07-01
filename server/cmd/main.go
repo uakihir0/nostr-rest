@@ -9,11 +9,10 @@ func main() {
 
 	repository.StartAllRelayServers(
 		[]string{
+			"wss://relay.snort.social",
 			"wss://eden.nostr.land",
 			"wss://relay.damus.io",
 			"wss://nos.lol",
-			"wss://brb.io",
-			"wss://relay.snort.social",
 		},
 	)
 
