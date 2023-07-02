@@ -14,6 +14,11 @@
 
 本プロジェクトは実装途中です。
 
+
+## Mastodon 互換 API 
+
+**[API 仕様書](https://www.uakihir0.com/nostr-rest/mastodon.html)**
+
 ## 作者
 
 Nostr: [uakihir0](https://iris.to/profile/npub1wah2gsmn2sup7998yzlrc3mfxlwwwft76yrnu49pjtdun8em0mxq6appzu)  

@@ -16,6 +16,10 @@ To solve these problems, we will place a REST API gateway in front of the relay 
 
 This project is in the process of implementation.
 
+## Mastodon API Compatibility
+
+**[API Specifications](https://www.uakihir0.com/nostr-rest/mastodon.html)**
+
 ## Author
 
 Nostr: [uakihir0](https://iris.to/profile/npub1wah2gsmn2sup7998yzlrc3mfxlwwwft76yrnu49pjtdun8em0mxq6appzu)  
