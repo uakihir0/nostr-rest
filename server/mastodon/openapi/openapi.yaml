@@ -47,7 +47,15 @@ paths:
     get:
       summary: Get account’s statuses
       tags: []
-      responses: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
       operationId: get-api-v1-accounts-uid-statuses
       security:
         - NPubOrNSec: []
