@@ -20,7 +20,7 @@ func Skipper(c echo.Context) bool {
 
 // IsDefaultPath
 func IsDefaultPath(path string) bool {
-	return strings.HasPrefix(path, "/api/")
+	return strings.HasPrefix(path, "/v1/")
 }
 
 // AuthHandler

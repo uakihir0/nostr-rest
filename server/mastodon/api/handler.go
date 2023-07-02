@@ -27,7 +27,7 @@ func Skipper(c echo.Context) bool {
 
 // IsMastodonPath
 func IsMastodonPath(path string) bool {
-	return strings.HasPrefix(path, "/m/")
+	return strings.HasPrefix(path, "/api/")
 }
 
 // AuthHandler

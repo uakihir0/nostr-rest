@@ -9,7 +9,7 @@ import (
 )
 
 // GetMApiV1AccountsVerifyCredentials
-func (h *MastodonHandler) GetMApiV1AccountsVerifyCredentials(c echo.Context) error {
+func (h *MastodonHandler) GetApiV1AccountsVerifyCredentials(c echo.Context) error {
 	accountService := minjection.AccountService()
 
 	pk := c.(*domain.Context).PubKey
@@ -29,7 +29,7 @@ func (h *MastodonHandler) GetMApiV1AccountsVerifyCredentials(c echo.Context) err
 }
 
 // GetMApiV1AccountsId
-func (h *MastodonHandler) GetMApiV1AccountsId(c echo.Context, uid string) error {
+func (h *MastodonHandler) GetApiV1AccountsUid(c echo.Context, uid string) error {
 	accountService := minjection.AccountService()
 
 	pk, err := domain.ToUserPubKey(uid)

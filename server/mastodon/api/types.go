@@ -31,7 +31,7 @@ func ToCredentialAccount(
 		Fields:              []mopenapi.Field{},
 		Language:            "",
 		Note:                account.Note,
-		Privacy:             mopenapi.Public,
+		Privacy:             "public",
 		Sensitive:           false,
 		FollowRequestsCount: 0,
 	}
