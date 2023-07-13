@@ -55,7 +55,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/StatusOrigin'
+                  $ref: '#/components/schemas/Status'
       operationId: get-api-v1-accounts-uid-statuses
       security:
         - NPubOrNSec: []
@@ -316,7 +316,8 @@ components:
             reblog:
               anyOf:
                 - $ref: '#/components/schemas/StatusReblog'
-                - type: 'null'
+                - type: object
+                  nullable: true
               description: |
                 The status being reblogged.
           required:
@@ -538,10 +539,10 @@ components:
         - type: object
           properties:
             reblog:
-              type: 'null'
+              type: object
+              nullable: true
           required:
             - reblog
-      title: StatusReblog
     StatusMention:
       title: StatusMention
       type: object
@@ -717,7 +718,7 @@ components:
           enum:
             - unknown
             - image
-            - gifv
+            - gif
             - video
             - audio
         url:
