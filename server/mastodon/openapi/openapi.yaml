@@ -306,7 +306,22 @@ components:
             sensitive: true
             language: string
             follow_requests_count: 0
+      title: CredentialAccount
     Status:
+      title: Status
+      allOf:
+        - $ref: '#/components/schemas/StatusOrign'
+        - type: object
+          properties:
+            reblog:
+              anyOf:
+                - $ref: '#/components/schemas/StatusReblog'
+                - type: 'null'
+              description: |
+                The status being reblogged.
+          required:
+            - reblog
+    StatusOrign:
       type: object
       description: Represents a status posted by an account.
       examples:
@@ -379,7 +394,7 @@ components:
             image: null
             embed_url: ''
           poll: null
-      title: Status
+      title: StatusOrigin
       properties:
         id:
           type: string
@@ -515,29 +530,18 @@ components:
         - emojis
         - card
         - poll
-    StatusOrigin:
-      title: StatusOrigin
-      allOf:
-        - $ref: '#/components/schemas/Status'
-        - type: object
-          properties:
-            reblog:
-              anyOf:
-                - $ref: '#/components/schemas/StatusReblog'
-                - type: 'null'
-              description: |
-                The status being reblogged.
-          required:
-            - reblog
+      x-stoplight:
+        id: 6770f36484496
     StatusReblog:
       allOf:
-        - $ref: '#/components/schemas/Status'
+        - $ref: '#/components/schemas/StatusOrign'
         - type: object
           properties:
             reblog:
               type: 'null'
           required:
             - reblog
+      title: StatusReblog
     StatusMention:
       title: StatusMention
       type: object
