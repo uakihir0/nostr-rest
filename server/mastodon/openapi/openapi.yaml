@@ -530,10 +530,14 @@ components:
           required:
             - reblog
     StatusReblog:
-      title: StatusReblog
       allOf:
         - $ref: '#/components/schemas/Status'
-        - type: 'null'
+        - type: object
+          properties:
+            reblog:
+              type: 'null'
+          required:
+            - reblog
     StatusMention:
       title: StatusMention
       type: object
@@ -568,27 +572,6 @@ components:
       required:
         - name
         - url
-    Field:
-      type: object
-      properties:
-        name:
-          type: string
-          description: The key of a given field’s key-value pair.
-        value:
-          type: string
-          description: The value associated with the name key.
-        verified_at:
-          type: string
-          nullable: true
-          description: Timestamp of when the server verified a URL value for a rel=“me” link.
-      required:
-        - name
-        - value
-        - verified_at
-      examples:
-        - name: Website
-          value: 'https://trwnh.com'
-          verified_at: '2019-08-29T04:14:55.571+00:00'
     CustomEmoji:
       type: object
       properties:
@@ -619,6 +602,27 @@ components:
           static_url: 'https://files.mastodon.social/custom_emojis/images/000/011/739/static/blobaww.png'
           visible_in_picker: true
           category: Blobs
+    Field:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The key of a given field’s key-value pair.
+        value:
+          type: string
+          description: The value associated with the name key.
+        verified_at:
+          type: string
+          nullable: true
+          description: Timestamp of when the server verified a URL value for a rel=“me” link.
+      required:
+        - name
+        - value
+        - verified_at
+      examples:
+        - name: Website
+          value: 'https://trwnh.com'
+          verified_at: '2019-08-29T04:14:55.571+00:00'
     Source:
       title: Source
       type: object
@@ -1115,24 +1119,6 @@ components:
             - bad word
           status_matches:
             - '109031743575371913'
-    StatusReblogged:
-      allOf:
-        - $ref: '#/components/schemas/Status'
-          x-stoplight:
-            id: a4jc6qlz75dyf
-        - type: object
-          x-stoplight:
-            id: b6hm9o8du24jq
-          properties:
-            reblog:
-              type:
-                - object
-                - 'null'
-              x-stoplight:
-                id: 9of46pj9fnvjc
-              description: The status being reblogged.
-          required:
-            - reblog
   securitySchemes:
     NPubOrNSec:
       type: http
