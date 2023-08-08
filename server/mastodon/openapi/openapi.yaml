@@ -396,6 +396,8 @@ components:
             embed_url: ''
           poll: null
       title: StatusOrigin
+      x-stoplight:
+        id: 6770f36484496
       properties:
         id:
           type: string
@@ -421,6 +423,10 @@ components:
         spoiler_text:
           type: string
           description: 'Subject or summary line, below which status content is collapsed until expanded.'
+        language:
+          type: string
+          nullable: true
+          description: Primary language of this status.
         visibility:
           type: string
           description: Visibility of this status.
@@ -429,10 +435,6 @@ components:
             - unlisted
             - private
             - direct
-        language:
-          type: string
-          nullable: true
-          description: Primary language of this status.
         uri:
           type: string
           description: URI of the status used for federation.
@@ -498,10 +500,15 @@ components:
           items:
             $ref: '#/components/schemas/CustomEmoji'
         card:
-          $ref: '#/components/schemas/PreviewCard'
+          anyOf:
+            - $ref: '#/components/schemas/PreviewCard'
+            - type: object
+              nullable: true
         poll:
-          $ref: '#/components/schemas/Poll'
-          description: The poll attached to the status.
+          anyOf:
+            - $ref: '#/components/schemas/Poll'
+            - type: object
+              nullable: true
         filtered:
           type: array
           description: 'If the current token has an authorized user: The filter and keywords that matched this status.'
@@ -515,8 +522,8 @@ components:
         - in_reply_to_account_id
         - sensitive
         - spoiler_text
-        - visibility
         - language
+        - visibility
         - uri
         - url
         - replies_count
@@ -531,8 +538,6 @@ components:
         - emojis
         - card
         - poll
-      x-stoplight:
-        id: 6770f36484496
     StatusReblog:
       allOf:
         - $ref: '#/components/schemas/StatusOrign'

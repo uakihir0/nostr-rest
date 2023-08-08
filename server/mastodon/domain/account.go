@@ -2,8 +2,10 @@ package mdomain
 
 import "time"
 
+type AccountID string
+
 type Account struct {
-	ID          string
+	ID          AccountID
 	Name        string
 	DisplayName string
 	Picture     string

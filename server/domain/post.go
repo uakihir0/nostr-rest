@@ -22,5 +22,10 @@ type PostRepository interface {
 	SendPost(UserPubKey, UserSecretKey, string) error
 
 	// GetPosts
-	GetPosts([]UserPubKey, int, *time.Time, *time.Time) ([]*Post, error)
+	GetPosts(
+		pks []UserPubKey,
+		maxResults int,
+		sinceTime *time.Time,
+		untilTime *time.Time,
+	) ([]Post, error)
 }

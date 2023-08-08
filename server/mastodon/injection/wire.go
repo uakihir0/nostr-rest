@@ -12,3 +12,8 @@ func AccountService() *mservice.AccountService {
 	wire.Build(bindSet)
 	return nil
 }
+
+func StatusService() *mservice.StatusService {
+	wire.Build(bindSet)
+	return nil
+}
