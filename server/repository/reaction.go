@@ -32,21 +32,26 @@ func (r RelayReactionRepository) GetReactions(
 		[]nostr.Filter{{
 			Kinds: []int{nostr.KindReaction},
 			Tags: map[string][]string{
-				"#e": {string(id)},
+				"e": {string(id)},
 			},
 			Limit: 1000,
 		}},
 	)
 
+	// Distinct
+	pkMap := make(map[string]bool)
 	results := make([]domain.Reaction, 0)
-	for _, event := range events {
-		re, err := MarshalReactionEvent(event)
-		if err != nil {
-			return nil, err
-		}
 
-		result := re.ToReaction()
-		results = append(results, result)
+	for _, event := range events {
+		if !pkMap[event.Sig] {
+			pkMap[event.Sig] = true
+
+			re, err := MarshalReactionEvent(event)
+			if err != nil {
+				return nil, err
+			}
+			results = append(results, re.ToReaction())
+		}
 	}
 
 	return results, nil

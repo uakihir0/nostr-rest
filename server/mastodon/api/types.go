@@ -127,8 +127,8 @@ func ToStatus(
 		Card:      *card,
 		Poll:      *poll,
 
-		FavouritesCount:  0,
-		ReblogsCount:     0,
+		FavouritesCount:  st.FavouritesCount,
+		ReblogsCount:     st.ReblogsCount,
 		RepliesCount:     0,
 		Sensitive:        false,
 		MediaAttachments: []mopenapi.MediaAttachment{},

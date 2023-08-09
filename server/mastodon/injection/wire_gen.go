@@ -16,9 +16,10 @@ import (
 func AccountService() *mservice.AccountService {
 	relayUserRepository := repository.NewRelayUserRepository()
 	relayPostRepository := repository.NewRelayPostRepository()
+	relayRepostRepository := repository.NewRelayRepostRepository()
 	relayReactionRepository := repository.NewRelayReactionRepository()
 	relayRelationShipRepository := repository.NewRelayRelationShipRepository()
-	typeService := mservice.NewTypeService(relayUserRepository, relayPostRepository, relayReactionRepository, relayRelationShipRepository)
+	typeService := mservice.NewTypeService(relayUserRepository, relayPostRepository, relayRepostRepository, relayReactionRepository, relayRelationShipRepository)
 	accountService := mservice.NewAccountService(typeService, relayUserRepository, relayPostRepository, relayRelationShipRepository)
 	return accountService
 }
@@ -26,9 +27,10 @@ func AccountService() *mservice.AccountService {
 func StatusService() *mservice.StatusService {
 	relayUserRepository := repository.NewRelayUserRepository()
 	relayPostRepository := repository.NewRelayPostRepository()
+	relayRepostRepository := repository.NewRelayRepostRepository()
 	relayReactionRepository := repository.NewRelayReactionRepository()
 	relayRelationShipRepository := repository.NewRelayRelationShipRepository()
-	typeService := mservice.NewTypeService(relayUserRepository, relayPostRepository, relayReactionRepository, relayRelationShipRepository)
+	typeService := mservice.NewTypeService(relayUserRepository, relayPostRepository, relayRepostRepository, relayReactionRepository, relayRelationShipRepository)
 	statusService := mservice.NewStatusService(typeService, relayUserRepository, relayPostRepository, relayRelationShipRepository)
 	return statusService
 }

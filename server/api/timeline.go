@@ -143,13 +143,13 @@ func paging(
 }
 
 func timelineUsers(
-	posts []*domain.Post,
+	posts []domain.Post,
 	additionalPks []domain.UserPubKey,
 ) []domain.UserPubKey {
 
 	// Map by public key
 	postsPks := lo.Map(posts,
-		func(p *domain.Post, _ int) domain.UserPubKey {
+		func(p domain.Post, _ int) domain.UserPubKey {
 			return p.UserPubKey
 		})
 

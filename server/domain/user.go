@@ -44,5 +44,5 @@ func ToUserPubKey(uid string) (*UserPubKey, error) {
 type UserRepository interface {
 
 	// GetUsers
-	GetUsers([]UserPubKey) ([]*User, error)
+	GetUsers([]UserPubKey) ([]User, error)
 }

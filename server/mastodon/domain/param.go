@@ -3,7 +3,7 @@ package mdomain
 type TimelineOptions struct {
 	MaxId   *StatusID
 	SinceId *StatusID
-	MinId   *string
+	MinId   *StatusID
 	Limit   *int
 
 	OnlyMedia      *bool

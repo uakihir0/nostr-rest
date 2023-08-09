@@ -2,6 +2,7 @@ package mservice
 
 import (
 	"github.com/uakihir0/nostr-rest/server/util"
+	"sync"
 	"time"
 
 	"github.com/samber/lo"
@@ -12,6 +13,7 @@ import (
 type TypeService struct {
 	userRepository         domain.UserRepository
 	postRepository         domain.PostRepository
+	repostRepository       domain.RepostRepository
 	reactionRepository     domain.ReactionRepository
 	relationShipRepository domain.RelationShipRepository
 }
@@ -21,6 +23,7 @@ var typeServiceLock = util.Lock[TypeService]{}
 func NewTypeService(
 	userRepository domain.UserRepository,
 	postRepository domain.PostRepository,
+	repostRepository domain.RepostRepository,
 	reactionRepository domain.ReactionRepository,
 	relationShipRepository domain.RelationShipRepository,
 ) *TypeService {
@@ -29,6 +32,7 @@ func NewTypeService(
 			return &TypeService{
 				userRepository:         userRepository,
 				postRepository:         postRepository,
+				repostRepository:       repostRepository,
 				reactionRepository:     reactionRepository,
 				relationShipRepository: relationShipRepository,
 			}
@@ -56,7 +60,7 @@ func (s *TypeService) AccountID(
 		return nil, nil
 	}
 
-	return s.Account(*users[0])
+	return s.Account(users[0])
 }
 
 // Account
@@ -82,12 +86,11 @@ func (s *TypeService) Account(
 		FollowersCount: 0,
 	}
 
-	statusCountCh := make(chan int)
-	followingCountCh := make(chan int)
-	followersCountCh := make(chan int)
+	var wg sync.WaitGroup
+	wg.Add(3)
 
 	// Get user's posts count
-	go func(ch chan int) {
+	go func(wg *sync.WaitGroup) {
 		unix := time.Now().Unix()
 		week := int64(60 * 60 * 24 * 7)
 		posts, err := s.postRepository.GetPosts(
@@ -96,40 +99,39 @@ func (s *TypeService) Account(
 			lo.ToPtr(time.Unix(unix, 0)),
 		)
 		if err != nil {
-			ch <- 0
 			return
 		}
+
 		if len(posts) > 0 {
 			// Set the last stats at here is a bit tricky
 			acc.LastStatsAt = lo.ToPtr(posts[0].CreatedAt)
 		}
 
-		ch <- len(posts)
-	}(statusCountCh)
+		acc.StatusesCount = len(posts)
+		wg.Done()
+	}(&wg)
 
 	// Get user's following count
-	go func(ch chan int) {
+	go func(wg *sync.WaitGroup) {
 		following, err := s.relationShipRepository.GetFollowings(user.PubKey)
 		if err != nil {
-			ch <- 0
 			return
 		}
-		ch <- len(following)
-	}(followingCountCh)
+		acc.FollowingCount = len(following)
+		wg.Done()
+	}(&wg)
 
 	// Get user's followers count
-	go func(ch chan int) {
+	go func(wg *sync.WaitGroup) {
 		followers, err := s.relationShipRepository.GetFollowers(user.PubKey)
 		if err != nil {
-			ch <- 0
 			return
 		}
-		ch <- len(followers)
-	}(followersCountCh)
+		acc.FollowersCount = len(followers)
+		wg.Done()
+	}(&wg)
 
-	acc.StatusesCount = <-statusCountCh
-	acc.FollowingCount = <-followingCountCh
-	acc.FollowersCount = <-followersCountCh
+	wg.Wait()
 	return acc, nil
 }
 
@@ -143,49 +145,52 @@ func (s *TypeService) Status(
 	post domain.Post,
 ) (*mdomain.Status, error) {
 
-	acc, err := s.AccountID(post.UserPubKey)
-	if err != nil {
-		return nil, err
-	}
-
 	status := &mdomain.Status{
 		ID: mdomain.NewStatusID(
 			string(post.ID),
 			post.CreatedAt,
 		),
 		Text:      post.Content,
-		Account:   *acc,
 		CreatedAt: post.CreatedAt,
 
 		FavouritesCount: 0,
 		ReblogsCount:    0,
 	}
 
-	favouritesCountCh := make(chan int)
-	reblogsCountCh := make(chan int)
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	// Get post's account
+	go func(wg *sync.WaitGroup) {
+		acc, err := s.AccountID(post.UserPubKey)
+		if err != nil {
+			return
+		}
+		status.Account = *acc
+		wg.Done()
+	}(&wg)
 
 	// Get post's reactions count
-	go func(ch chan int) {
+	go func(wg *sync.WaitGroup) {
 		reactions, err := s.reactionRepository.GetReactions(post.ID)
 		if err != nil {
-			ch <- 0
 			return
 		}
-		ch <- len(reactions)
-	}(favouritesCountCh)
+		status.FavouritesCount = len(reactions)
+		wg.Done()
+	}(&wg)
 
 	// Get post's repost count
-	go func(ch chan int) {
-		reactions, err := s.reactionRepository.GetReactions(post.ID)
+	go func(wg *sync.WaitGroup) {
+		reposts, err := s.repostRepository.GetReposts(post.ID)
 		if err != nil {
-			ch <- 0
 			return
 		}
-		ch <- len(reactions)
-	}(reblogsCountCh)
+		status.ReblogsCount = len(reposts)
+		wg.Done()
+	}(&wg)
 
-	status.FavouritesCount = <-favouritesCountCh
-	status.ReblogsCount = <-reblogsCountCh
+	wg.Wait()
 	return status, nil
 }
 
@@ -196,12 +201,33 @@ func (s *TypeService) Statuses(
 ) ([]mdomain.Status, error) {
 
 	statuses := make([]mdomain.Status, len(posts))
+	errors := make([]error, len(posts))
+
+	var wg sync.WaitGroup
+	wg.Add(len(posts))
+
+	// Get statuses concurrently
 	for i, post := range posts {
-		status, err := s.Status(post)
+		go func(i int, post domain.Post, wg *sync.WaitGroup) {
+			status, err := s.Status(post)
+			if err != nil {
+				errors[i] = err
+				wg.Done()
+				return
+			}
+			statuses[i] = *status
+			wg.Done()
+		}(i, post, &wg)
+	}
+
+	wg.Wait()
+
+	// Check if there is any error
+	for _, err := range errors {
 		if err != nil {
 			return nil, err
 		}
-		statuses[i] = *status
 	}
+
 	return statuses, nil
 }

@@ -73,7 +73,7 @@ func (r *RelayUserRepository) SetUserCache(
 // Retrieve user information
 func (r *RelayUserRepository) GetUsers(
 	pks []domain.UserPubKey,
-) ([]*domain.User, error) {
+) ([]domain.User, error) {
 
 	// Temporary storage of acquired user information
 	userMap := make(map[domain.UserPubKey]*domain.User)
@@ -121,7 +121,7 @@ func (r *RelayUserRepository) GetUsers(
 	}
 
 	// Sort by request order
-	result := make([]*domain.User, 0)
+	result := make([]domain.User, 0)
 	for _, pk := range pks {
 		user, ok := userMap[pk]
 		if !ok {
@@ -131,7 +131,7 @@ func (r *RelayUserRepository) GetUsers(
 			)
 		} else {
 			// Append user if present
-			result = append(result, user)
+			result = append(result, *user)
 		}
 	}
 

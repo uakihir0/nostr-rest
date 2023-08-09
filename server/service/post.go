@@ -50,7 +50,7 @@ func (s *PostService) GetPosts(
 	maxResults int,
 	sinceTime *time.Time,
 	untilTime *time.Time,
-) ([]*domain.Post, error) {
+) ([]domain.Post, error) {
 
 	posts, err := s.postRepository.GetPosts(
 		pks, maxResults, sinceTime, untilTime,
