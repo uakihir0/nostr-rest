@@ -55,7 +55,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/StatusOrigin'
+                  $ref: '#/components/schemas/Status'
       operationId: get-api-v1-accounts-uid-statuses
       security:
         - NPubOrNSec: []
@@ -306,7 +306,23 @@ components:
             sensitive: true
             language: string
             follow_requests_count: 0
+      title: CredentialAccount
     Status:
+      title: Status
+      allOf:
+        - $ref: '#/components/schemas/StatusOrign'
+        - type: object
+          properties:
+            reblog:
+              anyOf:
+                - $ref: '#/components/schemas/StatusReblog'
+                - type: object
+                  nullable: true
+              description: |
+                The status being reblogged.
+          required:
+            - reblog
+    StatusOrign:
       type: object
       description: Represents a status posted by an account.
       examples:
@@ -379,7 +395,9 @@ components:
             image: null
             embed_url: ''
           poll: null
-      title: Status
+      title: StatusOrigin
+      x-stoplight:
+        id: 6770f36484496
       properties:
         id:
           type: string
@@ -405,6 +423,10 @@ components:
         spoiler_text:
           type: string
           description: 'Subject or summary line, below which status content is collapsed until expanded.'
+        language:
+          type: string
+          nullable: true
+          description: Primary language of this status.
         visibility:
           type: string
           description: Visibility of this status.
@@ -413,10 +435,6 @@ components:
             - unlisted
             - private
             - direct
-        language:
-          type: string
-          nullable: true
-          description: Primary language of this status.
         uri:
           type: string
           description: URI of the status used for federation.
@@ -482,10 +500,15 @@ components:
           items:
             $ref: '#/components/schemas/CustomEmoji'
         card:
-          $ref: '#/components/schemas/PreviewCard'
+          anyOf:
+            - $ref: '#/components/schemas/PreviewCard'
+            - type: object
+              nullable: true
         poll:
-          $ref: '#/components/schemas/Poll'
-          description: The poll attached to the status.
+          anyOf:
+            - $ref: '#/components/schemas/Poll'
+            - type: object
+              nullable: true
         filtered:
           type: array
           description: 'If the current token has an authorized user: The filter and keywords that matched this status.'
@@ -499,8 +522,8 @@ components:
         - in_reply_to_account_id
         - sensitive
         - spoiler_text
-        - visibility
         - language
+        - visibility
         - uri
         - url
         - replies_count
@@ -515,25 +538,16 @@ components:
         - emojis
         - card
         - poll
-    StatusOrigin:
-      title: StatusOrigin
+    StatusReblog:
       allOf:
-        - $ref: '#/components/schemas/Status'
+        - $ref: '#/components/schemas/StatusOrign'
         - type: object
           properties:
             reblog:
-              anyOf:
-                - $ref: '#/components/schemas/StatusReblog'
-                - type: 'null'
-              description: |
-                The status being reblogged.
+              type: object
+              nullable: true
           required:
             - reblog
-    StatusReblog:
-      title: StatusReblog
-      allOf:
-        - $ref: '#/components/schemas/Status'
-        - type: 'null'
     StatusMention:
       title: StatusMention
       type: object
@@ -568,27 +582,6 @@ components:
       required:
         - name
         - url
-    Field:
-      type: object
-      properties:
-        name:
-          type: string
-          description: The key of a given field’s key-value pair.
-        value:
-          type: string
-          description: The value associated with the name key.
-        verified_at:
-          type: string
-          nullable: true
-          description: Timestamp of when the server verified a URL value for a rel=“me” link.
-      required:
-        - name
-        - value
-        - verified_at
-      examples:
-        - name: Website
-          value: 'https://trwnh.com'
-          verified_at: '2019-08-29T04:14:55.571+00:00'
     CustomEmoji:
       type: object
       properties:
@@ -619,6 +612,27 @@ components:
           static_url: 'https://files.mastodon.social/custom_emojis/images/000/011/739/static/blobaww.png'
           visible_in_picker: true
           category: Blobs
+    Field:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The key of a given field’s key-value pair.
+        value:
+          type: string
+          description: The value associated with the name key.
+        verified_at:
+          type: string
+          nullable: true
+          description: Timestamp of when the server verified a URL value for a rel=“me” link.
+      required:
+        - name
+        - value
+        - verified_at
+      examples:
+        - name: Website
+          value: 'https://trwnh.com'
+          verified_at: '2019-08-29T04:14:55.571+00:00'
     Source:
       title: Source
       type: object
@@ -709,7 +723,7 @@ components:
           enum:
             - unknown
             - image
-            - gifv
+            - gif
             - video
             - audio
         url:
@@ -1115,24 +1129,6 @@ components:
             - bad word
           status_matches:
             - '109031743575371913'
-    StatusReblogged:
-      allOf:
-        - $ref: '#/components/schemas/Status'
-          x-stoplight:
-            id: a4jc6qlz75dyf
-        - type: object
-          x-stoplight:
-            id: b6hm9o8du24jq
-          properties:
-            reblog:
-              type:
-                - object
-                - 'null'
-              x-stoplight:
-                id: 9of46pj9fnvjc
-              description: The status being reblogged.
-          required:
-            - reblog
   securitySchemes:
     NPubOrNSec:
       type: http

@@ -59,7 +59,7 @@ func (r *RelayPostRepository) GetPosts(
 	maxResults int,
 	sinceTime *time.Time,
 	untilTime *time.Time,
-) ([]*domain.Post, error) {
+) ([]domain.Post, error) {
 
 	userPKs := lo.Map(pks,
 		func(pk domain.UserPubKey, _ int) string {
@@ -86,7 +86,7 @@ func (r *RelayPostRepository) GetPosts(
 
 	// Distinct public keys
 	pkMap := make(map[string]bool)
-	posts := make([]*domain.Post, 0)
+	posts := make([]domain.Post, 0)
 
 	for _, event := range events {
 		if !pkMap[event.Sig] {

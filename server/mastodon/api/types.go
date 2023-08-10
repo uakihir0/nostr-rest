@@ -70,10 +70,10 @@ func ToAccount(
 	}
 
 	// Use the encoded public key hash (npub...)
-	acct, _ := nip19.EncodePublicKey(acc.ID)
+	acct, _ := nip19.EncodePublicKey(string(acc.ID))
 
 	account := mopenapi.Account{
-		Id:           acc.ID,
+		Id:           string(acc.ID),
 		Acct:         acct,
 		Username:     acct,
 		Avatar:       acc.Picture,
@@ -103,4 +103,43 @@ func ToAccount(
 	}
 
 	return account
+}
+
+func ToStatus(
+	st mdomain.Status,
+) mopenapi.Status {
+
+	card := &mopenapi.Status_Card{}
+	_ = card.FromStatusCard1(nil)
+
+	poll := &mopenapi.Status_Poll{}
+	_ = poll.FromStatusPoll1(nil)
+
+	// non-authenticated information
+	status := mopenapi.Status{
+		Id:        string(st.ID),
+		Uri:       "https://",
+		Emojis:    []mopenapi.CustomEmoji{},
+		Account:   ToAccount(st.Account),
+		Content:   st.Text,
+		Text:      &st.Text,
+		CreatedAt: st.CreatedAt.Format(TimeLayout),
+		Card:      *card,
+		Poll:      *poll,
+
+		FavouritesCount:  st.FavouritesCount,
+		ReblogsCount:     st.ReblogsCount,
+		RepliesCount:     0,
+		Sensitive:        false,
+		MediaAttachments: []mopenapi.MediaAttachment{},
+		Mentions:         []mopenapi.StatusMention{},
+		Tags:             []mopenapi.StatusTag{},
+		Visibility:       "public",
+	}
+
+	// authenticated information
+	status.Bookmarked = lo.ToPtr(false)
+	status.Pinned = lo.ToPtr(false)
+
+	return status
 }

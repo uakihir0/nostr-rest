@@ -13,7 +13,7 @@ const (
 	TimeLayout = "2006-01-02 15:04:05"
 )
 
-func ToUser(user *domain.User) *openapi.User {
+func ToUser(user domain.User) *openapi.User {
 	return &openapi.User{
 		Pubkey:      string(user.PubKey),
 		Name:        lo.ToPtr(user.Name),
@@ -25,11 +25,11 @@ func ToUser(user *domain.User) *openapi.User {
 	}
 }
 
-func ToUsersResponse(users []*domain.User) *openapi.UsersResponse {
+func ToUsersResponse(users []domain.User) *openapi.UsersResponse {
 	return &openapi.UsersResponse{
 		Count: len(users),
 		List: lo.Map(users,
-			func(u *domain.User, _ int) openapi.User {
+			func(u domain.User, _ int) openapi.User {
 				return *ToUser(u)
 			},
 		),
@@ -49,11 +49,11 @@ func ToPubKeysResponse(pks []domain.UserPubKey) *openapi.PubKeysResponse {
 
 func ToTimeline(
 	pks []domain.UserPubKey,
-	posts []*domain.Post,
-	users []*domain.User,
+	posts []domain.Post,
+	users []domain.User,
 ) *openapi.UsersTimelineResponse {
 
-	userMap := make(map[string]*domain.User)
+	userMap := make(map[string]domain.User)
 	for _, user := range users {
 		pk := string(user.PubKey)
 		userMap[pk] = user

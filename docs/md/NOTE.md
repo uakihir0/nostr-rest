@@ -40,3 +40,18 @@
   }
 ]
 ```
+
+### Get Reactions
+
+```json
+[
+  "REQ",
+  "299",
+  {
+    "kinds": [7],
+    "#e": ["279ed364b7f141d40606eccc13326368e06c05cb126a9db82bde6acffefb791c"],
+    "limit": 100
+  }
+]
+
+```

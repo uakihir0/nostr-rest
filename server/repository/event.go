@@ -3,12 +3,24 @@ package repository
 import (
 	"encoding/json"
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/samber/lo"
 	"github.com/uakihir0/nostr-rest/server/domain"
 	"time"
 )
 
+type Event struct {
+	ID        string
+	PubKey    string
+	Content   string
+	CreatedAt int64
+}
+
+// --------------------------------------------------------------------- //
+// USER
+// --------------------------------------------------------------------- //
+
 type UserEvent struct {
-	PubKey      string
+	Event
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
 	About       string `json:"about"`
@@ -16,7 +28,6 @@ type UserEvent struct {
 	Banner      string `json:"banner"`
 	Website     string `json:"website"`
 	Lud06       string `json:"lud06"`
-	CreatedAt   int64
 }
 
 // lud16
@@ -46,17 +57,18 @@ func MarshalUserEvent(e *nostr.Event) (*UserEvent, error) {
 	return event, nil
 }
 
+// --------------------------------------------------------------------- //
+// POST
+// --------------------------------------------------------------------- //
+
 type PostEvent struct {
-	ID         string
-	UserPubKey string
-	Content    string
-	CreatedAt  int64
+	Event
 }
 
-func (e *PostEvent) ToPost() *domain.Post {
-	return &domain.Post{
+func (e *PostEvent) ToPost() domain.Post {
+	return domain.Post{
 		ID:         domain.PostID(e.ID),
-		UserPubKey: domain.UserPubKey(e.UserPubKey),
+		UserPubKey: domain.UserPubKey(e.PubKey),
 		Content:    e.Content,
 		CreatedAt:  time.Unix(e.CreatedAt, 0),
 	}
@@ -65,8 +77,81 @@ func (e *PostEvent) ToPost() *domain.Post {
 func MarshalPostEvent(e *nostr.Event) (*PostEvent, error) {
 	event := &PostEvent{}
 	event.CreatedAt = int64(e.CreatedAt)
-	event.UserPubKey = e.PubKey
+	event.PubKey = e.PubKey
 	event.Content = e.Content
 	event.ID = e.ID
 	return event, nil
+}
+
+// --------------------------------------------------------------------- //
+// REACTION
+// --------------------------------------------------------------------- //
+
+type ReactionEvent struct {
+	Event
+	ToPost []string
+	ToUser []string
+}
+
+func (e *ReactionEvent) ToReaction() domain.Reaction {
+	return domain.Reaction{
+		ID:         domain.ReactionID(e.ID),
+		UserPubKey: domain.UserPubKey(e.PubKey),
+		Content:    e.Content,
+		CreatedAt:  time.Unix(e.CreatedAt, 0),
+	}
+}
+
+func MarshalReactionEvent(e *nostr.Event) (*ReactionEvent, error) {
+	event := &ReactionEvent{}
+	event.CreatedAt = int64(e.CreatedAt)
+	event.PubKey = e.PubKey
+	event.Content = e.Content
+	event.ID = e.ID
+	event.ToPost = ExtractTag(e, "e")
+	event.ToUser = ExtractTag(e, "p")
+	return event, nil
+}
+
+// --------------------------------------------------------------------- //
+// REPOST
+// --------------------------------------------------------------------- //
+
+type RepostEvent struct {
+	Event
+	ToPost []string
+	ToUser []string
+}
+
+func (e *RepostEvent) ToRepost() domain.Repost {
+	return domain.Repost{
+		ID:         domain.RepostID(e.ID),
+		UserPubKey: domain.UserPubKey(e.PubKey),
+		Content:    e.Content,
+		CreatedAt:  time.Unix(e.CreatedAt, 0),
+	}
+}
+
+func MarshalRepostEvent(e *nostr.Event) (*RepostEvent, error) {
+	event := &RepostEvent{}
+	event.CreatedAt = int64(e.CreatedAt)
+	event.PubKey = e.PubKey
+	event.Content = e.Content
+	event.ID = e.ID
+	event.ToPost = ExtractTag(e, "e")
+	event.ToUser = ExtractTag(e, "p")
+	return event, nil
+}
+
+// --------------------------------------------------------------------- //
+// OTHER
+// --------------------------------------------------------------------- //
+
+func ExtractTag(e *nostr.Event, tag string) []string {
+	return lo.Map(
+		lo.Filter(e.Tags, func(t nostr.Tag, _ int) bool {
+			return t.Value() == tag
+		}), func(t nostr.Tag, _ int) string {
+			return t.Key()
+		})
 }

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"golang.org/x/sync/semaphore"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -123,6 +124,9 @@ func PrintConnectionError(c *RelayConnection, err error) {
 	fmt.Printf(">> error: %s\n", err)
 }
 
+// QuerySyncSemaphores
+var sm = semaphore.NewWeighted(20)
+
 // QuerySyncAll
 // Query all relay servers and retrieve results synchronously
 func QuerySyncAll(
@@ -142,6 +146,14 @@ func QuerySyncAllWithOptions(
 	filters nostr.Filters,
 	options QueryOptions,
 ) []*nostr.Event {
+
+	// Acquire semaphore
+	defer sm.Release(1)
+	err := sm.Acquire(ctx, 1)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
 
 	// Show query
 	fmt.Printf(filters.String() + "\n")
