@@ -8,6 +8,8 @@ import (
 )
 
 type RelayRelationShipRepository struct {
+	FollowingsCache StringCacheMap
+	FollowersCache  StringCacheMap
 }
 
 var relationShipRepositoryLock = util.Lock[RelayRelationShipRepository]{}
@@ -18,10 +20,15 @@ var _ domain.RelationShipRepository = (*RelayRelationShipRepository)(nil)
 func NewRelayRelationShipRepository() *RelayRelationShipRepository {
 	return relationShipRepositoryLock.Once(
 		func() *RelayRelationShipRepository {
-			return &RelayRelationShipRepository{}
+			return &RelayRelationShipRepository{
+				FollowingsCache: NewStringCacheMap(200),
+				FollowersCache:  NewStringCacheMap(200),
+			}
 		},
 	)
 }
+
+var followingsLimitMap = util.NewLimitMap(1)
 
 // GetFollowings
 // Get public keys of users specific user is following
@@ -29,12 +36,22 @@ func (r *RelayRelationShipRepository) GetFollowings(
 	pk domain.UserPubKey,
 ) ([]domain.UserPubKey, error) {
 
-	events := QuerySyncAll(
-		context.Background(),
-		[]nostr.Filter{{
-			Kinds:   []int{3},
-			Authors: []string{string(pk)},
-		}},
+	ctx := context.Background()
+	followingsLimitMap.Acquire(ctx, string(pk))
+	defer followingsLimitMap.Release(string(pk))
+
+	// Get events from cache or query
+	events := ManageEventsFromString(
+		r.FollowingsCache, string(pk),
+		func() []*nostr.Event {
+			return QuerySyncAll(
+				ctx,
+				[]nostr.Filter{{
+					Kinds:   []int{3},
+					Authors: []string{string(pk)},
+				}},
+			)
+		},
 	)
 
 	// Distinct user public keys
@@ -53,24 +70,32 @@ func (r *RelayRelationShipRepository) GetFollowings(
 	return pks, nil
 }
 
+var followersLimitMap = util.NewLimitMap(1)
+
 // GetFollowers
 // Get public keys of users specific user is followed by
 func (r *RelayRelationShipRepository) GetFollowers(
 	pk domain.UserPubKey,
 ) ([]domain.UserPubKey, error) {
 
-	options := DefaultQueryOptions()
-	options.TimeoutSeconds = 3
+	ctx := context.Background()
+	followersLimitMap.Acquire(ctx, string(pk))
+	defer followersLimitMap.Release(string(pk))
 
-	events := QuerySyncAllWithOptions(
-		context.Background(),
-		[]nostr.Filter{{
-			Kinds: []int{3},
-			Tags: map[string][]string{
-				"p": {string(pk)},
-			},
-		}},
-		options,
+	// Get events from cache or query
+	events := ManageEventsFromString(
+		r.FollowingsCache, string(pk),
+		func() []*nostr.Event {
+			return QuerySyncAll(
+				ctx,
+				[]nostr.Filter{{
+					Kinds: []int{3},
+					Tags: map[string][]string{
+						"p": {string(pk)},
+					},
+				}},
+			)
+		},
 	)
 
 	// Distinct user public keys

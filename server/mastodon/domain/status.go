@@ -11,13 +11,17 @@ import (
 
 type StatusID string
 
-func (i StatusID) toDate() (*time.Time, error) {
+func (i StatusID) ToDate() (*time.Time, error) {
 	elements := strings.Split(string(i), ".")
 	msec, err := strconv.Atoi(elements[1])
 	if err != nil {
 		return nil, errors.New("illegal status id format")
 	}
 	return lo.ToPtr(time.UnixMilli(int64(msec))), nil
+}
+
+func (i StatusID) ToNostrID() string {
+	return strings.Split(string(i), ".")[0]
 }
 
 func NewStatusID(id string, createdAt time.Time) StatusID {

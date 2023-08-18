@@ -10,6 +10,7 @@ import (
 )
 
 type RelayPostRepository struct {
+	LatestPostCache StringCacheMap
 }
 
 var postRepositoryLock = util.Lock[RelayPostRepository]{}
@@ -20,7 +21,9 @@ var _ domain.PostRepository = (*RelayPostRepository)(nil)
 func NewRelayPostRepository() *RelayPostRepository {
 	return postRepositoryLock.Once(
 		func() *RelayPostRepository {
-			return &RelayPostRepository{}
+			return &RelayPostRepository{
+				LatestPostCache: NewStringCacheMap(200),
+			}
 		},
 	)
 }
@@ -82,6 +85,58 @@ func (r *RelayPostRepository) GetPosts(
 	events := QuerySyncAll(
 		context.Background(),
 		[]nostr.Filter{filter},
+	)
+
+	// Distinct public keys
+	pkMap := make(map[string]bool)
+	posts := make([]domain.Post, 0)
+
+	for _, event := range events {
+		if !pkMap[event.Sig] {
+			pkMap[event.Sig] = true
+			post, err := MarshalPostEvent(event)
+			if err != nil {
+				return nil, err
+
+			}
+
+			posts = append(posts, post.ToPost())
+		}
+	}
+
+	return posts, nil
+}
+
+var latestPostsLimitMap = util.NewLimitMap(1)
+
+func (r *RelayPostRepository) GetUserLatestPosts(
+	pk domain.UserPubKey,
+) ([]domain.Post, error) {
+
+	ctx := context.Background()
+	latestPostsLimitMap.Acquire(ctx, string(pk))
+	defer latestPostsLimitMap.Release(string(pk))
+
+	// Get events from cache or query
+	events := ManageEventsFromString(
+		r.LatestPostCache, string(pk),
+		func() []*nostr.Event {
+			filter := nostr.Filter{
+				Kinds:   []int{1},
+				Authors: []string{string(pk)},
+				Limit:   1000,
+			}
+
+			unix := time.Now().Unix()
+			week := int64(60 * 60 * 24 * 7)
+			filter.Since = lo.ToPtr(nostr.Timestamp(unix-week))
+			filter.Until = lo.ToPtr(nostr.Timestamp(unix))
+
+			return QuerySyncAll(
+				context.Background(),
+				[]nostr.Filter{filter},
+			)
+		},
 	)
 
 	// Distinct public keys

@@ -28,4 +28,9 @@ type PostRepository interface {
 		sinceTime *time.Time,
 		untilTime *time.Time,
 	) ([]Post, error)
+
+	// GetUserLatestPosts
+	GetUserLatestPosts(
+		pk UserPubKey,
+	) ([]Post, error)
 }

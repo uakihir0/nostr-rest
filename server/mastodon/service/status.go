@@ -48,6 +48,11 @@ func (s *StatusService) GetUserStatues(
 	var sinceTime *time.Time = nil
 	var untilTime *time.Time = nil
 
+	go func() {
+		// Get user info for store cache (for speed)
+		_, _ = s.userRepository.GetUsers([]domain.UserPubKey{pk})
+	}()
+
 	// Get user metadata first
 	pks := []domain.UserPubKey{pk}
 	posts, err := s.postRepository.GetPosts(pks, limit, sinceTime, untilTime)

@@ -91,13 +91,7 @@ func (s *TypeService) Account(
 
 	// Get user's posts count
 	go func(wg *sync.WaitGroup) {
-		unix := time.Now().Unix()
-		week := int64(60 * 60 * 24 * 7)
-		posts, err := s.postRepository.GetPosts(
-			[]domain.UserPubKey{user.PubKey}, 1000,
-			lo.ToPtr(time.Unix(unix-week, 0)),
-			lo.ToPtr(time.Unix(unix, 0)),
-		)
+		posts, err := s.postRepository.GetUserLatestPosts(user.PubKey)
 		if err != nil {
 			return
 		}
@@ -106,7 +100,6 @@ func (s *TypeService) Account(
 			// Set the last stats at here is a bit tricky
 			acc.LastStatsAt = lo.ToPtr(posts[0].CreatedAt)
 		}
-
 		acc.StatusesCount = len(posts)
 		wg.Done()
 	}(&wg)
