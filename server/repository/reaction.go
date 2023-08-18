@@ -8,6 +8,7 @@ import (
 )
 
 type RelayReactionRepository struct {
+	Cache StringCacheMap
 }
 
 var reactionRepositoryLock = util.Lock[RelayReactionRepository]{}
@@ -18,7 +19,9 @@ var _ domain.ReactionRepository = (*RelayReactionRepository)(nil)
 func NewRelayReactionRepository() *RelayReactionRepository {
 	return reactionRepositoryLock.Once(
 		func() *RelayReactionRepository {
-			return &RelayReactionRepository{}
+			return &RelayReactionRepository{
+				Cache: NewStringCacheMap(200),
+			}
 		},
 	)
 }
@@ -27,15 +30,25 @@ func (r RelayReactionRepository) GetReactions(
 	id domain.PostID,
 ) ([]domain.Reaction, error) {
 
-	events := QuerySyncAll(
-		context.Background(),
-		[]nostr.Filter{{
-			Kinds: []int{nostr.KindReaction},
-			Tags: map[string][]string{
-				"e": {string(id)},
-			},
-			Limit: 1000,
-		}},
+	// Get events from cache or query
+	events := ManageEventsFromString(
+		r.Cache, string(id),
+		func() []*nostr.Event {
+			options := DefaultQueryOptions()
+			options.RequiredOneEvent = false
+
+			return QuerySyncAllWithOptions(
+				context.Background(),
+				[]nostr.Filter{{
+					Kinds: []int{nostr.KindReaction},
+					Tags: map[string][]string{
+						"e": {string(id)},
+					},
+					Limit: 1000,
+				}},
+				options,
+			)
+		},
 	)
 
 	// Distinct

@@ -115,10 +115,14 @@ func ToStatus(
 	poll := &mopenapi.Status_Poll{}
 	_ = poll.FromStatusPoll1(nil)
 
+	// Use the encoded public key hash (nevent...)
+	nevent, _ := nip19.EncodeEvent(st.ID.ToNostrID(),
+		[]string{}, string(st.Account.ID))
+
 	// non-authenticated information
 	status := mopenapi.Status{
 		Id:        string(st.ID),
-		Uri:       "https://",
+		Uri:       "https://snort.social/e/" + nevent,
 		Emojis:    []mopenapi.CustomEmoji{},
 		Account:   ToAccount(st.Account),
 		Content:   st.Text,

@@ -8,6 +8,7 @@ import (
 )
 
 type RelayRepostRepository struct {
+	Cache StringCacheMap
 }
 
 var repostRepositoryLock = util.Lock[RelayRepostRepository]{}
@@ -18,7 +19,9 @@ var _ domain.RepostRepository = (*RelayRepostRepository)(nil)
 func NewRelayRepostRepository() *RelayRepostRepository {
 	return repostRepositoryLock.Once(
 		func() *RelayRepostRepository {
-			return &RelayRepostRepository{}
+			return &RelayRepostRepository{
+				Cache: NewStringCacheMap(200),
+			}
 		},
 	)
 }
@@ -27,15 +30,25 @@ func (r RelayRepostRepository) GetReposts(
 	id domain.PostID,
 ) ([]domain.Repost, error) {
 
-	events := QuerySyncAll(
-		context.Background(),
-		[]nostr.Filter{{
-			Kinds: []int{nostr.KindRepost},
-			Tags: map[string][]string{
-				"e": {string(id)},
-			},
-			Limit: 1000,
-		}},
+	// Get events from cache or query
+	events := ManageEventsFromString(
+		r.Cache, string(id),
+		func() []*nostr.Event {
+			options := DefaultQueryOptions()
+			options.RequiredOneEvent = false
+
+			return QuerySyncAllWithOptions(
+				context.Background(),
+				[]nostr.Filter{{
+					Kinds: []int{nostr.KindRepost},
+					Tags: map[string][]string{
+						"e": {string(id)},
+					},
+					Limit: 1000,
+				}},
+				options,
+			)
+		},
 	)
 
 	pkMap := make(map[string]bool)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/sync/semaphore"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -23,13 +24,17 @@ type RelayConnection struct {
 }
 
 type QueryOptions struct {
+	RequiredOneEvent   bool
 	ExpectedEventCount int
+	ExpectedEOSECount  int
 	TimeoutSeconds     time.Duration
 }
 
 func DefaultQueryOptions() QueryOptions {
 	return QueryOptions{
+		RequiredOneEvent:   true,
 		ExpectedEventCount: -1,
+		ExpectedEOSECount:  1,
 		TimeoutSeconds:     5,
 	}
 }
@@ -156,11 +161,14 @@ func QuerySyncAllWithOptions(
 	}
 
 	// Show query
-	fmt.Printf(filters.String() + "\n")
+	var sb strings.Builder
+	sb.WriteString(filters.String() + "\n")
 
 	cs := GetConnections()
 
-	var channelCounter int32 = 0
+	var endStreamCounter int32 = 0
+	var eoseStreamCounter int32 = 0
+
 	channel := make(chan *nostr.Event)
 	stop := make(chan interface{})
 
@@ -172,18 +180,42 @@ func QuerySyncAllWithOptions(
 	var isStopped = false
 	var timeout = options.TimeoutSeconds * time.Second
 
-	afterChannelClose := func() {
-		// Close channel if all subscriptions closed
-		atomic.AddInt32(&channelCounter, 1)
+	// Stop all stream
+	closeAllStream := func() {
+		if !isStopped {
+			isStopped = true
+			close(stop)
 
-		mu.Lock()
-		if channelCounter == int32(len(cs)) {
-			if !isStopped {
-				isStopped = true
-				close(stop)
+			// Send done signal to connections
+			for _, done := range dones {
+				close(done)
 			}
 		}
-		mu.Unlock()
+	}
+
+	// Channel close processing
+	afterChannelClose := func() {
+		// Close channel if all subscriptions closed
+		atomic.AddInt32(&endStreamCounter, 1)
+
+		mu.Lock()
+		defer mu.Unlock()
+
+		// Close channel if all stream ended
+		if endStreamCounter == int32(len(cs)) {
+			closeAllStream()
+			return
+		}
+
+		if options.ExpectedEOSECount > 0 {
+			// Early termination (enough EOSE streaming count)
+			if eoseStreamCounter >= int32(options.ExpectedEOSECount) {
+				if len(events) > 0 || !options.RequiredOneEvent {
+					closeAllStream()
+					return
+				}
+			}
+		}
 	}
 
 	for _, c := range cs {
@@ -216,18 +248,19 @@ func QuerySyncAllWithOptions(
 				// Termination process first
 				// End of Contents (Real All)
 				case <-sub.EndOfStoredEvents:
-					println(">>> " + tUrl + " >> EndOfStoredEvents")
-					println(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())))
+					sb.WriteString(">>> " + tUrl + " >> EndOfStoredEvents\n")
+					sb.WriteString(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())) + "\n")
+					atomic.AddInt32(&eoseStreamCounter, 1)
 					return
 					// Context Canceled
 				case <-ctx.Done():
-					println(">>> " + tUrl + " >> context.DONE")
-					println(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())))
+					sb.WriteString(">>> " + tUrl + " >> context.DONE\n")
+					sb.WriteString(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())) + "\n")
 					return
 					// Force Termination
 				case <-done:
-					println(">>> " + tUrl + " >> done")
-					println(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())))
+					sb.WriteString(">>> " + tUrl + " >> done\n")
+					sb.WriteString(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())) + "\n")
 					return
 
 				case ev := <-sub.Events:
@@ -249,18 +282,10 @@ loop:
 
 			mu.Lock()
 			if options.ExpectedEventCount > 0 {
-
 				// Early termination (got expected data)
 				if len(events) >= options.ExpectedEventCount {
-					if !isStopped {
-						isStopped = true
-						close(stop)
-
-						// Send done signal to connections.
-						for _, done := range dones {
-							close(done)
-						}
-					}
+					closeAllStream()
+					mu.Unlock()
 					break loop
 				}
 			}
@@ -269,6 +294,7 @@ loop:
 		}
 	}
 
+	println(sb.String())
 	return events
 }
 
