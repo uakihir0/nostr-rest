@@ -1,51 +1,52 @@
-# goenv: Go の環境を構築
-FROM golang:1.19.1-alpine as goenv
+# goenv: Build a Go environment
+FROM golang:1.21.0-alpine as goenv
 
 RUN apk update
 
 WORKDIR /app
 
-# 共通リソースを配置
+# Common resources
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
 
-# サーバーコードを配置
+# Place server code
 COPY server server/
 
-# builder: サーバーを構築
+# builder: Build server
 FROM goenv as builder
 
-# ビルドタグを指定
+# Set build tag
 ARG build
 
-# DI をビルドタグに合わせて再設定
+# Reconfigure DI to match build tag
 RUN go run github.com/google/wire/cmd/wire \
     gen -tags "$build" ./.../injection/...
 
-# サーバーをビルド
-RUN CGO_ENABLED=0 GOOS=linux go build -v -o /app/server ./server/cmd
+# Build server
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o /app/main ./server/cmd
 
-# run: 実行環境の構築
+# run: Construction of runtime environment
 FROM gcr.io/distroless/static-debian10 as run
 
-COPY --from=builder /app/server /server
-COPY --from=builder /app/etc/ /etc/
+COPY --from=builder /app/main /main
+# If files are needed, place them in `etc` folder
+# COPY --from=builder /app/etc/ /etc/
 
-CMD ["/server"]
+CMD ["/main"]
 
-# air: デバッグ実行環境を準備
+# air: Prepare debug environment
 FROM goenv as dev
 
-# ホットスワップライブラリを導入
+# HotSwap library introduced
 RUN go install github.com/cosmtrek/air@latest
 
-# ビルドタグを指定
+# Set build tag
 ARG build
 ENV BUILD $build
 
-# DI をビルドタグに合わせて再設定
-# (ローカルも変更になるので注意)
+# Reconfigure DI to match build tag
+# (local environment will also change)
 CMD go run github.com/google/wire/cmd/wire \
     gen -tags "$BUILD" ./.../injection/... && \
     air -c ./server/.air.toml
