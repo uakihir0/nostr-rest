@@ -11,6 +11,7 @@ import (
 
 type RelayPostRepository struct {
 	LatestPostCache StringCacheMap
+	GetRepliesCache StringCacheMap
 }
 
 var postRepositoryLock = util.Lock[RelayPostRepository]{}
@@ -23,6 +24,7 @@ func NewRelayPostRepository() *RelayPostRepository {
 		func() *RelayPostRepository {
 			return &RelayPostRepository{
 				LatestPostCache: NewStringCacheMap(200),
+				GetRepliesCache: NewStringCacheMap(200),
 			}
 		},
 	)
@@ -54,6 +56,45 @@ func (r *RelayPostRepository) SendPost(
 	)
 
 	return nil
+}
+
+var getPostLimitMap = util.NewLimitMap(1)
+
+// GetPost
+func (r *RelayPostRepository) GetPost(
+	id domain.PostID,
+) (*domain.Post, error) {
+
+	ctx := context.Background()
+	getPostLimitMap.Acquire(ctx, string(id))
+	defer getPostLimitMap.Release(string(id))
+
+	// Get events from cache or query
+	events := ManageEventsFromString(
+		r.GetRepliesCache, string(id),
+		func() []*nostr.Event {
+			filter := nostr.Filter{
+				Kinds: []int{1},
+				IDs:   []string{string(id)},
+				Limit: 1,
+			}
+			return QuerySyncAll(
+				context.Background(),
+				[]nostr.Filter{filter},
+			)
+		},
+	)
+
+	if len(events) > 0 {
+		post, err := MarshalPostEvent(events[0])
+		if err != nil {
+			return nil, err
+
+		}
+		return lo.ToPtr(post.ToPost()), nil
+	}
+
+	return nil, nil
 }
 
 // GetPosts
@@ -109,6 +150,7 @@ func (r *RelayPostRepository) GetPosts(
 
 var latestPostsLimitMap = util.NewLimitMap(1)
 
+// GetUserLatestPosts
 func (r *RelayPostRepository) GetUserLatestPosts(
 	pk domain.UserPubKey,
 ) ([]domain.Post, error) {
@@ -129,9 +171,58 @@ func (r *RelayPostRepository) GetUserLatestPosts(
 
 			unix := time.Now().Unix()
 			week := int64(60 * 60 * 24 * 7)
-			filter.Since = lo.ToPtr(nostr.Timestamp(unix-week))
+			filter.Since = lo.ToPtr(nostr.Timestamp(unix - week))
 			filter.Until = lo.ToPtr(nostr.Timestamp(unix))
 
+			return QuerySyncAll(
+				context.Background(),
+				[]nostr.Filter{filter},
+			)
+		},
+	)
+
+	// Distinct public keys
+	pkMap := make(map[string]bool)
+	posts := make([]domain.Post, 0)
+
+	for _, event := range events {
+		if !pkMap[event.Sig] {
+			pkMap[event.Sig] = true
+			post, err := MarshalPostEvent(event)
+			if err != nil {
+				return nil, err
+
+			}
+
+			posts = append(posts, post.ToPost())
+		}
+	}
+
+	return posts, nil
+}
+
+var getRepliesLimitMap = util.NewLimitMap(1)
+
+// GetReplies
+func (r *RelayPostRepository) GetReplies(
+	id domain.PostID,
+) ([]domain.Post, error) {
+
+	ctx := context.Background()
+	latestPostsLimitMap.Acquire(ctx, string(id))
+	defer latestPostsLimitMap.Release(string(id))
+
+	// Get events from cache or query
+	events := ManageEventsFromString(
+		r.LatestPostCache, string(id),
+		func() []*nostr.Event {
+			filter := nostr.Filter{
+				Kinds: []int{1},
+				Tags: map[string][]string{
+					"e": {string(id)},
+				},
+				Limit: 1000,
+			}
 			return QuerySyncAll(
 				context.Background(),
 				[]nostr.Filter{filter},

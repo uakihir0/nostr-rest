@@ -87,10 +87,11 @@ func (s *TypeService) Account(
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(3)
 
 	// Get user's posts count
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
 		posts, err := s.postRepository.GetUserLatestPosts(user.PubKey)
 		if err != nil {
 			return
@@ -101,31 +102,43 @@ func (s *TypeService) Account(
 			acc.LastStatsAt = lo.ToPtr(posts[0].CreatedAt)
 		}
 		acc.StatusesCount = len(posts)
-		wg.Done()
 	}(&wg)
 
 	// Get user's following count
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
 		following, err := s.relationShipRepository.GetFollowings(user.PubKey)
 		if err != nil {
 			return
 		}
 		acc.FollowingCount = len(following)
-		wg.Done()
 	}(&wg)
 
 	// Get user's followers count
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
 		followers, err := s.relationShipRepository.GetFollowers(user.PubKey)
 		if err != nil {
 			return
 		}
 		acc.FollowersCount = len(followers)
-		wg.Done()
 	}(&wg)
 
 	wg.Wait()
 	return acc, nil
+}
+
+func (s *TypeService) MentionedAccount(
+	user domain.User,
+) (*mdomain.MentionedAccount, error) {
+	return &mdomain.MentionedAccount{
+		ID:          mdomain.AccountID(user.PubKey),
+		Name:        user.Name,
+		DisplayName: user.DisplayName,
+		Picture:     user.Picture,
+	}, nil
 }
 
 // --------------------------------------------------------------------- //
@@ -148,40 +161,114 @@ func (s *TypeService) Status(
 
 		FavouritesCount: 0,
 		ReblogsCount:    0,
+		RepliesCount:    0,
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(3)
 
 	// Get post's account
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
 		acc, err := s.AccountID(post.UserPubKey)
 		if err != nil {
 			return
 		}
 		status.Account = *acc
-		wg.Done()
 	}(&wg)
 
 	// Get post's reactions count
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
 		reactions, err := s.reactionRepository.GetReactions(post.ID)
 		if err != nil {
 			return
 		}
 		status.FavouritesCount = len(reactions)
-		wg.Done()
 	}(&wg)
 
 	// Get post's repost count
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
 		reposts, err := s.repostRepository.GetReposts(post.ID)
 		if err != nil {
 			return
 		}
 		status.ReblogsCount = len(reposts)
-		wg.Done()
 	}(&wg)
+
+	// Get post's replies count
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		replies, err := s.postRepository.GetReplies(post.ID)
+		if err != nil {
+			return
+		}
+		status.RepliesCount = len(replies)
+	}(&wg)
+
+	// Get thread root post
+	if post.RootPostID != nil {
+		wg.Add(1)
+		go func(wg *sync.WaitGroup) {
+			defer wg.Done()
+			p, err := s.postRepository.GetPost(*post.RootPostID)
+			if err != nil {
+				return
+			}
+			if p != nil {
+				status.RootPostID = lo.ToPtr(
+					mdomain.NewStatusID(
+						string(p.ID),
+						p.CreatedAt,
+					))
+			}
+		}(&wg)
+	}
+
+	// Get thread reply post
+	if post.ReplyPostID != nil {
+		wg.Add(1)
+		go func(wg *sync.WaitGroup) {
+			defer wg.Done()
+			p, err := s.postRepository.GetPost(*post.ReplyPostID)
+			if err != nil {
+				return
+			}
+			if p != nil {
+				status.ReplyPostID = lo.ToPtr(
+					mdomain.NewStatusID(
+						string(p.ID),
+						p.CreatedAt,
+					))
+			}
+		}(&wg)
+	}
+
+	// Get mentioned users
+	if len(post.MentionedUserPubKeys) > 0 {
+		wg.Add(1)
+		go func(wg *sync.WaitGroup) {
+			defer wg.Done()
+			users, err := s.userRepository.GetUsers(post.MentionedUserPubKeys)
+			if err != nil {
+				return
+			}
+
+			accounts := make([]mdomain.MentionedAccount, 0)
+			for _, user := range users {
+				account, err := s.MentionedAccount(user)
+				if err != nil {
+					return
+				}
+				accounts = append(accounts, *account)
+			}
+			status.MentionedAccounts = accounts
+		}(&wg)
+	}
 
 	wg.Wait()
 	return status, nil
@@ -197,19 +284,18 @@ func (s *TypeService) Statuses(
 	errors := make([]error, len(posts))
 
 	var wg sync.WaitGroup
-	wg.Add(len(posts))
 
 	// Get statuses concurrently
 	for i, post := range posts {
+		wg.Add(1)
 		go func(i int, post domain.Post, wg *sync.WaitGroup) {
+			defer wg.Done()
 			status, err := s.Status(post)
 			if err != nil {
 				errors[i] = err
-				wg.Done()
 				return
 			}
 			statuses[i] = *status
-			wg.Done()
 		}(i, post, &wg)
 	}
 

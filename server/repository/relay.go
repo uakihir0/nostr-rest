@@ -177,8 +177,10 @@ func QuerySyncAllWithOptions(
 
 	// Channel close mutex
 	var mu sync.Mutex
+	var wg sync.WaitGroup
 	var isStopped = false
 	var timeout = options.TimeoutSeconds * time.Second
+
 
 	// Stop all stream
 	closeAllStream := func() {
@@ -219,12 +221,15 @@ func QuerySyncAllWithOptions(
 	}
 
 	for _, c := range cs {
+		wg.Add(1)
+
 		// Timeout occurs if acquisition is not possible
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		sub, err := c.Relay.Subscribe(ctx, filters)
 		if err != nil {
 			go afterChannelClose()
 			c.Error <- err
+			wg.Done()
 			cancel()
 			continue
 		}
@@ -235,11 +240,14 @@ func QuerySyncAllWithOptions(
 		tUrl := c.URL
 		start := time.Now()
 
-		go func(done <-chan interface{}) {
-
+		go func(
+			done <-chan interface{},
+			nsub *nostr.Subscription,
+		) {
 			defer func() {
 				afterChannelClose()
-				sub.Unsub()
+				nsub.Unsub()
+				wg.Done()
 				cancel()
 			}()
 
@@ -247,7 +255,7 @@ func QuerySyncAllWithOptions(
 				select {
 				// Termination process first
 				// End of Contents (Real All)
-				case <-sub.EndOfStoredEvents:
+				case <-nsub.EndOfStoredEvents:
 					sb.WriteString(">>> " + tUrl + " >> EndOfStoredEvents\n")
 					sb.WriteString(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())) + "\n")
 					atomic.AddInt32(&eoseStreamCounter, 1)
@@ -263,12 +271,12 @@ func QuerySyncAllWithOptions(
 					sb.WriteString(">>> spend (msec):" + strconv.Itoa(int(time.Now().UnixMilli()-start.UnixMilli())) + "\n")
 					return
 
-				case ev := <-sub.Events:
+				case ev := <-nsub.Events:
 					channel <- ev
 					continue
 				}
 			}
-		}(done)
+		}(done, sub)
 	}
 
 loop:
@@ -294,6 +302,7 @@ loop:
 		}
 	}
 
+	wg.Wait()
 	println(sb.String())
 	return events
 }
