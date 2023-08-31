@@ -133,7 +133,7 @@ func ToStatus(
 
 		FavouritesCount:  st.FavouritesCount,
 		ReblogsCount:     st.ReblogsCount,
-		RepliesCount:     0,
+		RepliesCount:     st.RepliesCount,
 		Sensitive:        false,
 		MediaAttachments: []mopenapi.MediaAttachment{},
 		Mentions:         []mopenapi.StatusMention{},
@@ -145,5 +145,29 @@ func ToStatus(
 	status.Bookmarked = lo.ToPtr(false)
 	status.Pinned = lo.ToPtr(false)
 
+	// add mentioned accounts
+	if len(st.MentionedAccounts) > 0 {
+		status.Mentions = lo.Map(st.MentionedAccounts,
+			func(item mdomain.MentionedAccount, _ int) mopenapi.StatusMention {
+				return toStatusMention(item)
+			},
+		)
+	}
+
 	return status
+}
+
+func toStatusMention(
+	acc mdomain.MentionedAccount,
+) mopenapi.StatusMention {
+
+	acct, _ := nip19.EncodePublicKey(string(acc.ID))
+	url := "https://snort.social/p/" + acct
+
+	return mopenapi.StatusMention{
+		Id:       string(acc.ID),
+		Acct:     acct,
+		Username: acct,
+		Url:      url,
+	}
 }

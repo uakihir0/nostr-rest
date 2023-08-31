@@ -9,6 +9,10 @@ type Post struct {
 	UserPubKey UserPubKey
 	Content    string
 	CreatedAt  time.Time
+
+	RootPostID           *PostID
+	ReplyPostID          *PostID
+	MentionedUserPubKeys []UserPubKey
 }
 
 type PostWithUser struct {
@@ -21,6 +25,9 @@ type PostRepository interface {
 	// SendPost
 	SendPost(UserPubKey, UserSecretKey, string) error
 
+	// GetPost
+	GetPost(id PostID) (*Post, error)
+
 	// GetPosts
 	GetPosts(
 		pks []UserPubKey,
@@ -29,8 +36,12 @@ type PostRepository interface {
 		untilTime *time.Time,
 	) ([]Post, error)
 
+
 	// GetUserLatestPosts
 	GetUserLatestPosts(
 		pk UserPubKey,
 	) ([]Post, error)
+
+	// GetReplies
+	GetReplies(PostID) ([]Post, error)
 }

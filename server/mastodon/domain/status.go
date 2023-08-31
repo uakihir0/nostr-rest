@@ -28,11 +28,28 @@ func NewStatusID(id string, createdAt time.Time) StatusID {
 	return StatusID(fmt.Sprintf("%s.%d", id, createdAt.UnixMilli()))
 }
 
+func NewStatusIDWithNoDate(id string) StatusID {
+	return StatusID(fmt.Sprintf("%s.%d", id, 0))
+}
+
 type Status struct {
-	ID              StatusID
-	Text            string
-	Account         Account
-	CreatedAt       time.Time
+	ID        StatusID
+	Text      string
+	Account   Account
+	CreatedAt time.Time
+
 	FavouritesCount int
 	ReblogsCount    int
+	RepliesCount    int
+
+	RootPostID        *StatusID
+	ReplyPostID       *StatusID
+	MentionedAccounts []MentionedAccount
+}
+
+type MentionedAccount struct {
+	ID          AccountID
+	Name        string
+	DisplayName string
+	Picture     string
 }
