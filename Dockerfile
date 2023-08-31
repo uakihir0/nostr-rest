@@ -1,5 +1,5 @@
 # goenv: Go の環境を構築
-FROM golang:1.19.1-alpine as goenv
+FROM golang:1.21.0-alpine as goenv
 
 RUN apk update
 
