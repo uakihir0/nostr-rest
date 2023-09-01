@@ -26,15 +26,6 @@ RUN go run github.com/google/wire/cmd/wire \
 # Build server
 RUN CGO_ENABLED=0 GOOS=linux go build -v -o /app/main ./server/cmd
 
-# run: Construction of runtime environment
-FROM gcr.io/distroless/static-debian10 as run
-
-COPY --from=builder /app/main /main
-# If files are needed, place them in `etc` folder
-# COPY --from=builder /app/etc/ /etc/
-
-CMD ["/main"]
-
 # air: Prepare debug environment
 FROM goenv as dev
 
@@ -50,3 +41,12 @@ ENV BUILD $build
 CMD go run github.com/google/wire/cmd/wire \
     gen -tags "$BUILD" ./.../injection/... && \
     air -c ./server/.air.toml
+
+# run: Construction of runtime environment
+FROM gcr.io/distroless/static-debian10 as run
+
+COPY --from=builder /app/main /main
+# If files are needed, place them in `etc` folder
+# COPY --from=builder /app/etc/ /etc/
+
+CMD ["/main"]
