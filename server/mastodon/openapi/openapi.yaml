@@ -6,6 +6,9 @@ info:
   description: Mastodon Compatible API for Nostr.
 servers:
   - url: 'http://localhost:8080'
+    description: Local
+  - url: 'https://nostr-rest-ervoyfxxqq-an.a.run.app'
+    description: Dev
 paths:
   /api/v1/accounts/verify_credentials:
     get:
