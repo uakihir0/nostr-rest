@@ -15,10 +15,10 @@ func ToTimeLineOptions(
 	if params.MaxId != nil {
 		options.MaxId = lo.ToPtr(mdomain.StatusID(*params.MaxId))
 	}
-	if params.MaxId != nil {
+	if params.SinceId != nil {
 		options.SinceId = lo.ToPtr(mdomain.StatusID(*params.SinceId))
 	}
-	if params.MaxId != nil {
+	if params.MinId != nil {
 		options.MinId = lo.ToPtr(mdomain.StatusID(*params.MinId))
 	}
 
