@@ -4,7 +4,6 @@ import (
 	"github.com/uakihir0/nostr-rest/server/domain"
 	mdomain "github.com/uakihir0/nostr-rest/server/mastodon/domain"
 	"github.com/uakihir0/nostr-rest/server/util"
-	"time"
 )
 
 type StatusService struct {
@@ -40,13 +39,9 @@ func (s *StatusService) GetUserStatues(
 	op mdomain.TimelineOptions,
 ) ([]mdomain.Status, error) {
 
-	limit := 20
-	if op.Limit != nil {
-		limit = *op.Limit
-	}
-
-	var sinceTime *time.Time = nil
-	var untilTime *time.Time = nil
+	limit := op.GetLimit(20)
+	sinceTime := op.GetSinceTime()
+	untilTime := op.GetUntilTime()
 
 	go func() {
 		// Get user info for store cache (for speed)
