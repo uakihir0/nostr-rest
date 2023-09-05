@@ -5,24 +5,18 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/uakihir0/nostr-rest/server/domain"
 	"github.com/uakihir0/nostr-rest/server/mastodon/injection"
 	"github.com/uakihir0/nostr-rest/server/mastodon/openapi"
 )
 
-func (h *MastodonHandler) GetApiV1AccountsUidStatuses(
+func (h *MastodonHandler) GetApiV1TimelinesPublic(
 	c echo.Context,
-	uid string,
-	params mopenapi.GetApiV1AccountsUidStatusesParams,
+	params mopenapi.GetApiV1TimelinesPublicParams,
 ) error {
-	statusService := minjection.StatusService()
+	timelineService := minjection.TimelineService()
 
-	// TODO: for authentication fields
-	_ = c.(*domain.Context).PubKey
-
-	userPk := domain.UserPubKey(uid)
 	options := params.ToTimeLineOptions()
-	responses, err := statusService.GetUserStatues(userPk, options)
+	responses, err := timelineService.GetPublicTimeline(options)
 	if err != nil {
 		return err
 	}

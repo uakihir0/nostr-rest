@@ -34,3 +34,14 @@ func StatusService() *mservice.StatusService {
 	statusService := mservice.NewStatusService(typeService, relayUserRepository, relayPostRepository, relayRelationShipRepository)
 	return statusService
 }
+
+func TimelineService() *mservice.TimelineService {
+	relayUserRepository := repository.NewRelayUserRepository()
+	relayPostRepository := repository.NewRelayPostRepository()
+	relayRepostRepository := repository.NewRelayRepostRepository()
+	relayReactionRepository := repository.NewRelayReactionRepository()
+	relayRelationShipRepository := repository.NewRelayRelationShipRepository()
+	typeService := mservice.NewTypeService(relayUserRepository, relayPostRepository, relayRepostRepository, relayReactionRepository, relayRelationShipRepository)
+	timelineService := mservice.NewTimelineService(typeService, relayUserRepository, relayPostRepository, relayRelationShipRepository)
+	return timelineService
+}

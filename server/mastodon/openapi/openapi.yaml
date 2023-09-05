@@ -13,7 +13,6 @@ paths:
   /api/v1/accounts/verify_credentials:
     get:
       summary: Verify account credentials
-      tags: []
       responses:
         '200':
           description: OK
@@ -25,6 +24,8 @@ paths:
       security:
         - NPubOrNSec: []
       description: Test to make sure that the user token works.
+      tags:
+        - accounts
     parameters: []
   '/api/v1/accounts/{uid}':
     parameters:
@@ -36,7 +37,8 @@ paths:
         description: The ID of the Account in the database.
     get:
       summary: Get account
-      tags: []
+      tags:
+        - accounts
       operationId: get-api-v1-accounts-uid
       description: View information about a profile.
       responses:
@@ -49,7 +51,8 @@ paths:
   '/api/v1/accounts/{uid}/statuses':
     get:
       summary: Get account’s statuses
-      tags: []
+      tags:
+        - accounts
       responses:
         '200':
           description: OK
@@ -80,6 +83,32 @@ paths:
         schema:
           type: string
         description: The ID of the Account in the database.
+  /api/v1/timelines/public:
+    get:
+      summary: View public timeline
+      tags:
+        - timelines
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+      operationId: get-api-v1-timelines-public
+      description: View public timeline.
+      parameters:
+        - $ref: '#/components/parameters/IsLocalParam'
+        - $ref: '#/components/parameters/IsRemoteparam'
+        - $ref: '#/components/parameters/OnlyMediaQueryParam'
+        - $ref: '#/components/parameters/MaxIdQueryParam'
+        - $ref: '#/components/parameters/SinceIdQueryParam'
+        - $ref: '#/components/parameters/MinIdQueryParam'
+        - $ref: '#/components/parameters/LimitQueryParam'
+      security:
+        - NPubOrNSec: []
 components:
   schemas:
     Account:
@@ -1207,3 +1236,17 @@ components:
       schema:
         type: string
       description: Filter for statuses using a specific hashtag.
+    IsLocalParam:
+      name: local
+      in: query
+      required: false
+      schema:
+        type: boolean
+      description: Boolean. Show only local statuses? Defaults to false.
+    IsRemoteparam:
+      name: remote
+      in: query
+      required: false
+      schema:
+        type: boolean
+      description: Boolean. Show only remote statuses? Defaults to false.

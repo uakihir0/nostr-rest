@@ -17,3 +17,8 @@ func StatusService() *mservice.StatusService {
 	wire.Build(bindSet)
 	return nil
 }
+
+func TimelineService() *mservice.TimelineService {
+	wire.Build(bindSet)
+	return nil
+}

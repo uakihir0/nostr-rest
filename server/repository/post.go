@@ -111,11 +111,13 @@ func (r *RelayPostRepository) GetPosts(
 		})
 
 	filter := nostr.Filter{
-		Kinds:   []int{1},
-		Authors: userPKs,
-		Limit:   maxResults,
+		Kinds: []int{1},
+		Limit: maxResults,
 	}
 
+	if len(userPKs) > 0 {
+		filter.Authors = userPKs
+	}
 	if sinceTime != nil {
 		filter.Since = lo.ToPtr(nostr.Timestamp(sinceTime.Unix()))
 	}
@@ -146,6 +148,21 @@ func (r *RelayPostRepository) GetPosts(
 	}
 
 	return posts, nil
+}
+
+// GetPublicPosts
+func (r *RelayPostRepository) GetPublicPosts(
+	maxResults int,
+	sinceTime *time.Time,
+	untilTime *time.Time,
+) ([]domain.Post, error) {
+
+	return r.GetPosts(
+		[]domain.UserPubKey{},
+		maxResults,
+		sinceTime,
+		untilTime,
+	)
 }
 
 var latestPostsLimitMap = util.NewLimitMap(1)
