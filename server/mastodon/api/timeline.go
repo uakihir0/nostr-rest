@@ -1,15 +1,33 @@
 package mapi
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
-	mopenapi "github.com/uakihir0/nostr-rest/server/mastodon/openapi"
+
+	"github.com/uakihir0/nostr-rest/server/mastodon/injection"
+	"github.com/uakihir0/nostr-rest/server/mastodon/openapi"
 )
 
 func (h *MastodonHandler) GetApiV1TimelinesPublic(
-	ctx echo.Context,
+	c echo.Context,
 	params mopenapi.GetApiV1TimelinesPublicParams,
 ) error {
+	timelineService := minjection.TimelineService()
 
-	// TODO implement me
-	panic("implement me")
+	options := params.ToTimeLineOptions()
+	responses, err := timelineService.GetPublicTimeline(options)
+	if err != nil {
+		return err
+	}
+
+	statuses := make([]mopenapi.Status, len(responses))
+	for i, status := range responses {
+		statuses[i] = ToStatus(status)
+	}
+
+	return c.JSON(
+		http.StatusOK,
+		statuses,
+	)
 }

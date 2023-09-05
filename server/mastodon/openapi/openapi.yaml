@@ -107,6 +107,8 @@ paths:
         - $ref: '#/components/parameters/SinceIdQueryParam'
         - $ref: '#/components/parameters/MinIdQueryParam'
         - $ref: '#/components/parameters/LimitQueryParam'
+      security:
+        - NPubOrNSec: []
 components:
   schemas:
     Account:

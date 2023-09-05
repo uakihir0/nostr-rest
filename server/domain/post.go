@@ -36,6 +36,12 @@ type PostRepository interface {
 		untilTime *time.Time,
 	) ([]Post, error)
 
+	// GetPublicPosts
+	GetPublicPosts(
+		maxResults int,
+		sinceTime *time.Time,
+		untilTime *time.Time,
+	) ([]Post, error)
 
 	// GetUserLatestPosts
 	GetUserLatestPosts(

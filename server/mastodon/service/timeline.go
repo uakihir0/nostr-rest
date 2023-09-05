@@ -6,24 +6,24 @@ import (
 	"github.com/uakihir0/nostr-rest/server/util"
 )
 
-type StatusService struct {
+type TimelineService struct {
 	typeService            *TypeService
 	userRepository         domain.UserRepository
 	postRepository         domain.PostRepository
 	relationShipRepository domain.RelationShipRepository
 }
 
-var statusServiceLock = util.Lock[StatusService]{}
+var timelineServiceLock = util.Lock[TimelineService]{}
 
-func NewStatusService(
+func NewTimelineService(
 	typeService *TypeService,
 	userRepository domain.UserRepository,
 	postRepository domain.PostRepository,
 	relationShipRepository domain.RelationShipRepository,
-) *StatusService {
-	return statusServiceLock.Once(
-		func() *StatusService {
-			return &StatusService{
+) *TimelineService {
+	return timelineServiceLock.Once(
+		func() *TimelineService {
+			return &TimelineService{
 				typeService:            typeService,
 				userRepository:         userRepository,
 				postRepository:         postRepository,
@@ -33,21 +33,12 @@ func NewStatusService(
 	)
 }
 
-// GetUserStatues
-func (s *StatusService) GetUserStatues(
-	pk domain.UserPubKey,
+// GetPublicTimeline
+func (s *TimelineService) GetPublicTimeline(
 	op mdomain.TimelineOptions,
 ) ([]mdomain.Status, error) {
 
-	go func() {
-		// Get user info for store cache (for speed)
-		_, _ = s.userRepository.GetUsers([]domain.UserPubKey{pk})
-	}()
-
-	// Get user metadata first
-	pks := []domain.UserPubKey{pk}
-	posts, err := s.postRepository.GetPosts(
-		pks,
+	posts, err := s.postRepository.GetPublicPosts(
 		op.GetLimit(20),
 		op.GetSinceTime(),
 		op.GetUntilTime(),

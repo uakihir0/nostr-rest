@@ -11,6 +11,7 @@ var bindSet = wire.NewSet(
 	mservice.NewTypeService,
 	mservice.NewAccountService,
 	mservice.NewStatusService,
+	mservice.NewTimelineService,
 	repository.NewRelayUserRepository,
 	repository.NewRelayPostRepository,
 	repository.NewRelayRepostRepository,
