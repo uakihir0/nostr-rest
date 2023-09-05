@@ -42,3 +42,22 @@ func (h *MastodonHandler) GetApiV1TimelinesTagHashtag(
 	//TODO implement me
 	panic("implement me")
 }
+
+// GetApiV1TimelinesHome
+func (h *MastodonHandler) GetApiV1TimelinesHome(
+	c echo.Context,
+	params mopenapi.GetApiV1TimelinesHomeParams,
+) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+// GetApiV1TimelinesListListId
+func (h *MastodonHandler) GetApiV1TimelinesListListId(
+	ctx echo.Context,
+	lid string,
+	params mopenapi.GetApiV1TimelinesListListIdParams,
+) error {
+	//TODO implement me
+	panic("implement me")
+}

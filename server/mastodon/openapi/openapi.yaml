@@ -140,6 +140,56 @@ paths:
         - $ref: '#/components/parameters/SinceIdQueryParam'
         - $ref: '#/components/parameters/MinIdQueryParam'
         - $ref: '#/components/parameters/LimitQueryParam'
+  /api/v1/timelines/home:
+    get:
+      summary: View home timeline
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+      operationId: get-api-v1-timelines-home
+      security:
+        - NPubOrNSec: []
+      description: View statuses from followed users and hashtags.
+      parameters:
+        - $ref: '#/components/parameters/MaxIdQueryParam'
+        - $ref: '#/components/parameters/SinceIdQueryParam'
+        - $ref: '#/components/parameters/MinIdQueryParam'
+        - $ref: '#/components/parameters/LimitQueryParam'
+  '/api/v1/timelines/list/{lid}':
+    parameters:
+      - schema:
+          type: string
+        name: lid
+        in: path
+        required: true
+    get:
+      summary: View list timeline
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+      operationId: get-api-v1-timelines-list-list_id
+      description: View statuses in the given list timeline.
+      security:
+        - NPubOrNSec: []
+      parameters:
+        - $ref: '#/components/parameters/MaxIdQueryParam'
+        - $ref: '#/components/parameters/SinceIdQueryParam'
+        - $ref: '#/components/parameters/MinIdQueryParam'
+        - $ref: '#/components/parameters/LimitQueryParam'
 components:
   schemas:
     Account:
@@ -1309,3 +1359,10 @@ components:
       schema:
         type: array
       description: Array of String. Return statuses that contain none of these additional tags.
+    ListIdPathParam:
+      name: lid
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Local ID of the List in the database.
