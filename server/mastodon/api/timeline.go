@@ -9,6 +9,7 @@ import (
 	"github.com/uakihir0/nostr-rest/server/mastodon/openapi"
 )
 
+// GetApiV1TimelinesPublic
 func (h *MastodonHandler) GetApiV1TimelinesPublic(
 	c echo.Context,
 	params mopenapi.GetApiV1TimelinesPublicParams,
@@ -30,4 +31,14 @@ func (h *MastodonHandler) GetApiV1TimelinesPublic(
 		http.StatusOK,
 		statuses,
 	)
+}
+
+// GetApiV1TimelinesTagHashtag
+func (h *MastodonHandler) GetApiV1TimelinesTagHashtag(
+	c echo.Context,
+	hashtag mopenapi.HashTagPathParam,
+	params mopenapi.GetApiV1TimelinesTagHashtagParams,
+) error {
+	//TODO implement me
+	panic("implement me")
 }
