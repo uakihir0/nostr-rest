@@ -2,7 +2,8 @@
 
 # Nostr REST
 
-This project aims to treat Nostr as a microblog and create a server that provides a REST API. It is still a work-in-progress project, and we are looking for individuals to collaborate on its implementation.
+This project aims to treat Nostr as a microblog and create a server that provides a REST API. It is still a
+work-in-progress project, and we are looking for individuals to collaborate on its implementation.
 
 ## Purpose
 
@@ -12,11 +13,14 @@ When trying to use Nostr on mobile devices, the following issues may arise:
 - Lack of notification mechanisms, making it difficult to be aware of reactions.
 - Limited choices for client applications.
 
-To address these issues, we aim to resolve them by building a REST API server as a gateway instead of directly accessing relays.
+To address these issues, we aim to resolve them by building a REST API server as a gateway instead of directly accessing
+relays.
 
 ## Mastodon-Compatible API
 
-Implementing a REST API that adheres to the Mastodon API specification is the primary goal of this project. While there are differences in data structures between Mastodon and Nostr, we believe that providing Mastodon API compatibility by accommodating these differences will help achieve our goal.
+Implementing a REST API that adheres to the Mastodon API specification is the primary goal of this project. While there
+are differences in data structures between Mastodon and Nostr, we believe that providing Mastodon API compatibility by
+accommodating these differences will help achieve our goal.
 
 ### Compatibility Status
 
@@ -26,10 +30,13 @@ Implementing a REST API that adheres to the Mastodon API specification is the pr
     - [x] /v1/accounts/verify_credentials
     - [x] /v1/accounts/{uid}
     - [x] /v1/accounts/{uid}/statuses
+- Timelines
+    - [x] /v1/timelines/public
 
 ## Simple API
 
-Since the Mastodon-compatible API may have performance-related issues, we are also considering creating a simplified API and allowing clients to create their own.
+Since the Mastodon-compatible API may have performance-related issues, we are also considering creating a simplified API
+and allowing clients to create their own.
 
 ### Compatibility Status
 
@@ -37,7 +44,8 @@ Since the Mastodon-compatible API may have performance-related issues, we are al
 
 ## Usage Example
 
-A sample server reflecting the current implementation status is deployed, so you can refer to it to see what kind of data can be obtained.
+A sample server reflecting the current implementation status is deployed, so you can refer to it to see what kind of
+data can be obtained.
 
 ```shell
 # Retrieve Nostr posts by the author in Mastodon API format

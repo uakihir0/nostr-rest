@@ -30,6 +30,8 @@ Mastodon と Nostr で扱われているデータ構造には差異がありま�
   - [x] /v1/accounts/verify_credentials
   - [x] /v1/accounts/{uid}
   - [x] /v1/accounts/{uid}/statuses
+- Timelines
+  - [x] /v1/timelines/public
 
 ## 簡易 API
 
