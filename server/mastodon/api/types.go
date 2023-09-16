@@ -171,3 +171,13 @@ func toStatusMention(
 		Url:      url,
 	}
 }
+
+func ToStatues(
+	slice []mdomain.Status,
+) []mopenapi.Status {
+	statuses := make([]mopenapi.Status, len(slice))
+	for i, status := range slice {
+		statuses[i] = ToStatus(status)
+	}
+	return statuses
+}

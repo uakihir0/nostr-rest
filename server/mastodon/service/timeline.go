@@ -49,3 +49,27 @@ func (s *TimelineService) GetPublicTimeline(
 
 	return s.typeService.Statuses(posts)
 }
+
+
+// GetHomeTimeline
+func (s *TimelineService) GetHomeTimeline(
+	pk domain.UserPubKey,
+	op mdomain.TimelineOptions,
+) ([]mdomain.Status, error) {
+
+	// フォロワーリストを取得
+	followers, err := s.relationShipRepository.GetFollowers(pk)
+	if err != nil {
+		return nil, err
+	}
+
+	// 自分自身の投稿も取得対象に含める
+	followers = append(followers, pk)
+
+	// フォロワーの投稿を取得
+	posts, err := s.postRepository.GetPosts(
+		)
+
+
+	return nil, nil
+}
