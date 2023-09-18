@@ -50,7 +50,6 @@ func (s *TimelineService) GetPublicTimeline(
 	return s.typeService.Statuses(posts)
 }
 
-
 // GetHomeTimeline
 func (s *TimelineService) GetHomeTimeline(
 	pk domain.UserPubKey,
@@ -68,8 +67,11 @@ func (s *TimelineService) GetHomeTimeline(
 
 	// フォロワーの投稿を取得
 	posts, err := s.postRepository.GetPosts(
-		)
-
+		followers,
+		op.GetLimit(20),
+		op.GetSinceTime(),
+		op.GetUntilTime(),
+	)
 
 	return nil, nil
 }
