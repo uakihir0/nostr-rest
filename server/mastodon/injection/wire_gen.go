@@ -42,6 +42,7 @@ func TimelineService() *mservice.TimelineService {
 	relayReactionRepository := repository.NewRelayReactionRepository()
 	relayRelationShipRepository := repository.NewRelayRelationShipRepository()
 	typeService := mservice.NewTypeService(relayUserRepository, relayPostRepository, relayRepostRepository, relayReactionRepository, relayRelationShipRepository)
-	timelineService := mservice.NewTimelineService(typeService, relayUserRepository, relayPostRepository, relayRelationShipRepository)
+	relayTimelineRepository := repository.NewRelayTimelineRepository()
+	timelineService := mservice.NewTimelineService(typeService, relayUserRepository, relayPostRepository, relayRepostRepository, relayTimelineRepository, relayRelationShipRepository)
 	return timelineService
 }

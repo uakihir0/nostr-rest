@@ -136,6 +136,9 @@ func (e *ReactionEvent) ToReaction() domain.Reaction {
 		UserPubKey: domain.UserPubKey(e.PubKey),
 		Content:    e.Content,
 		CreatedAt:  time.Unix(e.CreatedAt, 0),
+
+		ToPostID:     domain.PostID(e.ToPost[0]),
+		ToUserPubKey: domain.UserPubKey(e.ToUser[0]),
 	}
 }
 
@@ -166,6 +169,9 @@ func (e *RepostEvent) ToRepost() domain.Repost {
 		UserPubKey: domain.UserPubKey(e.PubKey),
 		Content:    e.Content,
 		CreatedAt:  time.Unix(e.CreatedAt, 0),
+
+		ToPostID:     domain.PostID(e.ToPost[0]),
+		ToUserPubKey: domain.UserPubKey(e.ToUser[0]),
 	}
 }
 

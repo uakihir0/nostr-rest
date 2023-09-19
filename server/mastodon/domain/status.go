@@ -42,8 +42,9 @@ type Status struct {
 	ReblogsCount    int
 	RepliesCount    int
 
-	RootPostID        *StatusID
-	ReplyPostID       *StatusID
+	ReblogStatus      *Status
+	RootStatusID      *StatusID
+	ReplyStatusID     *StatusID
 	MentionedAccounts []MentionedAccount
 }
 

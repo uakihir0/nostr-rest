@@ -109,6 +109,87 @@ paths:
         - $ref: '#/components/parameters/LimitQueryParam'
       security:
         - NPubOrNSec: []
+  '/api/v1/timelines/tag/{hashtag}':
+    parameters:
+      - $ref: '#/components/parameters/HashTagPathParam'
+    get:
+      summary: View hashtag timeline
+      tags:
+        - timelines
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+      operationId: get-api-v1-timelines-tag-hashtag
+      description: View public statuses containing the given hashtag.
+      security:
+        - NPubOrNSec: []
+      parameters:
+        - $ref: '#/components/parameters/ArrayAnyQueryParam'
+        - $ref: '#/components/parameters/ArrayAllQueryParam'
+        - $ref: '#/components/parameters/ArrayNoneQueryParam'
+        - $ref: '#/components/parameters/IsLocalParam'
+        - $ref: '#/components/parameters/IsRemoteparam'
+        - $ref: '#/components/parameters/OnlyMediaQueryParam'
+        - $ref: '#/components/parameters/MaxIdQueryParam'
+        - $ref: '#/components/parameters/SinceIdQueryParam'
+        - $ref: '#/components/parameters/MinIdQueryParam'
+        - $ref: '#/components/parameters/LimitQueryParam'
+  /api/v1/timelines/home:
+    get:
+      summary: View home timeline
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+      operationId: get-api-v1-timelines-home
+      security:
+        - NPubOrNSec: []
+      description: View statuses from followed users and hashtags.
+      parameters:
+        - $ref: '#/components/parameters/MaxIdQueryParam'
+        - $ref: '#/components/parameters/SinceIdQueryParam'
+        - $ref: '#/components/parameters/MinIdQueryParam'
+        - $ref: '#/components/parameters/LimitQueryParam'
+  '/api/v1/timelines/list/{lid}':
+    parameters:
+      - schema:
+          type: string
+        name: lid
+        in: path
+        required: true
+    get:
+      summary: View list timeline
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+      operationId: get-api-v1-timelines-list-list_id
+      description: View statuses in the given list timeline.
+      security:
+        - NPubOrNSec: []
+      parameters:
+        - $ref: '#/components/parameters/MaxIdQueryParam'
+        - $ref: '#/components/parameters/SinceIdQueryParam'
+        - $ref: '#/components/parameters/MinIdQueryParam'
+        - $ref: '#/components/parameters/LimitQueryParam'
 components:
   schemas:
     Account:
@@ -1250,3 +1331,38 @@ components:
       schema:
         type: boolean
       description: Boolean. Show only remote statuses? Defaults to false.
+    HashTagPathParam:
+      name: hashtag
+      in: path
+      required: true
+      schema:
+        type: string
+      description: 'The name of the hashtag (not including the # symbol).'
+    ArrayAnyQueryParam:
+      name: any
+      in: query
+      required: false
+      schema:
+        type: array
+      description: Array of String. Return statuses that contain any of these additional tags.
+    ArrayAllQueryParam:
+      name: all
+      in: query
+      required: false
+      schema:
+        type: array
+      description: Array of String. Return statuses that contain all of these additional tags.
+    ArrayNoneQueryParam:
+      name: none
+      in: query
+      required: false
+      schema:
+        type: array
+      description: Array of String. Return statuses that contain none of these additional tags.
+    ListIdPathParam:
+      name: lid
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Local ID of the List in the database.

@@ -115,6 +115,14 @@ func ToStatus(
 	poll := &mopenapi.Status_Poll{}
 	_ = poll.FromStatusPoll1(nil)
 
+	reblog := &mopenapi.Status_Reblog{}
+	_ = reblog.FromStatusReblog1(nil)
+
+	if st.ReblogStatus != nil {
+		// reblog = &mopenapi.Status_Reblog{}
+		// _ = reblog.FromStatusReblog()
+	}
+
 	// Use the encoded public key hash (nevent...)
 	nevent, _ := nip19.EncodeEvent(st.ID.ToNostrID(),
 		[]string{}, string(st.Account.ID))
@@ -130,6 +138,7 @@ func ToStatus(
 		CreatedAt: st.CreatedAt.Format(TimeLayout),
 		Card:      *card,
 		Poll:      *poll,
+		Reblog:    *reblog,
 
 		FavouritesCount:  st.FavouritesCount,
 		ReblogsCount:     st.ReblogsCount,
@@ -170,4 +179,14 @@ func toStatusMention(
 		Username: acct,
 		Url:      url,
 	}
+}
+
+func ToStatues(
+	slice []mdomain.Status,
+) []mopenapi.Status {
+	statuses := make([]mopenapi.Status, len(slice))
+	for i, status := range slice {
+		statuses[i] = ToStatus(status)
+	}
+	return statuses
 }

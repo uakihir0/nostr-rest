@@ -16,6 +16,7 @@ var bindSet = wire.NewSet(
 	repository.NewRelayPostRepository,
 	repository.NewRelayRepostRepository,
 	repository.NewRelayReactionRepository,
+	repository.NewRelayTimelineRepository,
 	repository.NewRelayRelationShipRepository,
 	wire.Bind(
 		new(domain.UserRepository),
@@ -32,6 +33,10 @@ var bindSet = wire.NewSet(
 	wire.Bind(
 		new(domain.ReactionRepository),
 		new(*repository.RelayReactionRepository),
+	),
+	wire.Bind(
+		new(domain.TimelineRepository),
+		new(*repository.RelayTimelineRepository),
 	),
 	wire.Bind(
 		new(domain.RelationShipRepository),

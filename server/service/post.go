@@ -53,7 +53,12 @@ func (s *PostService) GetPosts(
 ) ([]domain.Post, error) {
 
 	posts, err := s.postRepository.GetPosts(
-		pks, maxResults, sinceTime, untilTime,
+		pks,
+		domain.PagingOptions{
+			MaxResults: maxResults,
+			SinceTime:  sinceTime,
+			UntilTime:  untilTime,
+		},
 	)
 	if err != nil {
 		return nil, err

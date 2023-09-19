@@ -1,6 +1,7 @@
 package mdomain
 
 import (
+	"github.com/uakihir0/nostr-rest/server/domain"
 	"time"
 
 	"github.com/samber/lo"
@@ -49,4 +50,14 @@ func (o TimelineOptions) GetUntilTime() *time.Time {
 		return lo.ToPtr(time.UnixMilli(date.UnixMilli() - 1))
 	}
 	return nil
+}
+
+func (o TimelineOptions) ToPagingOptions(
+	def int,
+) domain.PagingOptions {
+	return domain.PagingOptions{
+		MaxResults: o.GetLimit(def),
+		SinceTime:  o.GetSinceTime(),
+		UntilTime:  o.GetUntilTime(),
+	}
 }

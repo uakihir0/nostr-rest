@@ -9,6 +9,9 @@ type Reaction struct {
 	UserPubKey UserPubKey
 	Content    string
 	CreatedAt  time.Time
+
+	ToPostID     PostID
+	ToUserPubKey UserPubKey
 }
 
 type ReactionRepository interface {
