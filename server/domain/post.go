@@ -1,6 +1,8 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 type PostID string
 
@@ -31,16 +33,12 @@ type PostRepository interface {
 	// GetPosts
 	GetPosts(
 		pks []UserPubKey,
-		maxResults int,
-		sinceTime *time.Time,
-		untilTime *time.Time,
+		options PagingOptions,
 	) ([]Post, error)
 
 	// GetPublicPosts
 	GetPublicPosts(
-		maxResults int,
-		sinceTime *time.Time,
-		untilTime *time.Time,
+		options PagingOptions,
 	) ([]Post, error)
 
 	// GetUserLatestPosts

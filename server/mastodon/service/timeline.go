@@ -10,6 +10,8 @@ type TimelineService struct {
 	typeService            *TypeService
 	userRepository         domain.UserRepository
 	postRepository         domain.PostRepository
+	repostRepository       domain.RepostRepository
+	timelineRepository     domain.TimelineRepository
 	relationShipRepository domain.RelationShipRepository
 }
 
@@ -19,6 +21,8 @@ func NewTimelineService(
 	typeService *TypeService,
 	userRepository domain.UserRepository,
 	postRepository domain.PostRepository,
+	repostRepository domain.RepostRepository,
+	timelineRepository domain.TimelineRepository,
 	relationShipRepository domain.RelationShipRepository,
 ) *TimelineService {
 	return timelineServiceLock.Once(
@@ -27,6 +31,8 @@ func NewTimelineService(
 				typeService:            typeService,
 				userRepository:         userRepository,
 				postRepository:         postRepository,
+				repostRepository:       repostRepository,
+				timelineRepository:     timelineRepository,
 				relationShipRepository: relationShipRepository,
 			}
 		},
@@ -39,9 +45,7 @@ func (s *TimelineService) GetPublicTimeline(
 ) ([]mdomain.Status, error) {
 
 	posts, err := s.postRepository.GetPublicPosts(
-		op.GetLimit(20),
-		op.GetSinceTime(),
-		op.GetUntilTime(),
+		op.ToPagingOptions(20),
 	)
 	if err != nil {
 		return nil, err
@@ -66,12 +70,12 @@ func (s *TimelineService) GetHomeTimeline(
 	followers = append(followers, pk)
 
 	// フォロワーの投稿を取得
-	posts, err := s.postRepository.GetPosts(
-		followers,
-		op.GetLimit(20),
-		op.GetSinceTime(),
-		op.GetUntilTime(),
+	posts, err := s.timelineRepository.GetTimelines(
+		followers, op.ToPagingOptions(20),
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	return s.typeService.Timelines(posts)
 }

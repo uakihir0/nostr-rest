@@ -9,6 +9,9 @@ type Repost struct {
 	UserPubKey UserPubKey
 	Content    string
 	CreatedAt  time.Time
+
+	ToPostID     PostID
+	ToUserPubKey UserPubKey
 }
 
 type RepostRepository interface {

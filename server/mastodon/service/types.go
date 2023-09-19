@@ -220,7 +220,7 @@ func (s *TypeService) Status(
 				return
 			}
 			if p != nil {
-				status.RootPostID = lo.ToPtr(
+				status.RootStatusID = lo.ToPtr(
 					mdomain.NewStatusID(
 						string(p.ID),
 						p.CreatedAt,
@@ -239,7 +239,7 @@ func (s *TypeService) Status(
 				return
 			}
 			if p != nil {
-				status.ReplyPostID = lo.ToPtr(
+				status.ReplyStatusID = lo.ToPtr(
 					mdomain.NewStatusID(
 						string(p.ID),
 						p.CreatedAt,
@@ -297,6 +297,121 @@ func (s *TypeService) Statuses(
 			}
 			statuses[i] = *status
 		}(i, post, &wg)
+	}
+
+	wg.Wait()
+
+	// Check if there is any error
+	for _, err := range errors {
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return statuses, nil
+}
+
+// --------------------------------------------------------------------- //
+// REPOST
+// --------------------------------------------------------------------- //
+
+// Repost
+// make mastodon status domain object.
+func (s *TypeService) Repost(
+	repost domain.Repost,
+) (*mdomain.Status, error) {
+
+	status := &mdomain.Status{
+		ID: mdomain.NewStatusID(
+			string(repost.ID),
+			repost.CreatedAt,
+		),
+		Text:      "",
+		CreatedAt: repost.CreatedAt,
+
+		FavouritesCount: 0,
+		ReblogsCount:    0,
+		RepliesCount:    0,
+	}
+
+	var wg sync.WaitGroup
+
+	// Get post
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		post, err := s.postRepository.GetPost(repost.ToPostID)
+		if err != nil {
+			return
+		}
+
+		if post != nil {
+			s, err := s.Status(*post)
+			if err != nil {
+				return
+			}
+			status.ReblogStatus = s
+		}
+	}(&wg)
+
+	// Get post's account
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		acc, err := s.AccountID(repost.UserPubKey)
+		if err != nil {
+			return
+		}
+		status.Account = *acc
+	}(&wg)
+
+	return status, nil
+}
+
+// --------------------------------------------------------------------- //
+// TIMELINE
+// --------------------------------------------------------------------- //
+
+// Timeline
+// make mastodon status domain object.
+func (s *TypeService) Timeline(
+	timeline domain.Timeline,
+) (*mdomain.Status, error) {
+
+	if timeline.Post != nil {
+		return s.Status(*timeline.Post)
+	}
+	if timeline.Repost != nil {
+		return s.Repost(*timeline.Repost)
+	}
+
+	// Unexpected
+	return nil, nil
+}
+
+// Timelines
+// make mastodon status domain object.
+func (s *TypeService) Timelines(
+	timelines []domain.Timeline,
+) ([]mdomain.Status, error) {
+
+	statuses := make([]mdomain.Status, len(timelines))
+	errors := make([]error, len(timelines))
+
+	var wg sync.WaitGroup
+
+	// Get statuses concurrently
+	for i, timeline := range timelines {
+		wg.Add(1)
+		go func(i int, timeline domain.Timeline, wg *sync.WaitGroup) {
+			defer wg.Done()
+			status, err := s.Timeline(timeline)
+			if err != nil {
+				errors[i] = err
+				return
+			}
+			statuses[i] = *status
+		}(i, timeline, &wg)
 	}
 
 	wg.Wait()

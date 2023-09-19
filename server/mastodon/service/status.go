@@ -47,10 +47,7 @@ func (s *StatusService) GetUserStatues(
 	// Get user metadata first
 	pks := []domain.UserPubKey{pk}
 	posts, err := s.postRepository.GetPosts(
-		pks,
-		op.GetLimit(20),
-		op.GetSinceTime(),
-		op.GetUntilTime(),
+		pks, op.ToPagingOptions(20),
 	)
 	if err != nil {
 		return nil, err

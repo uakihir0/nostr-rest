@@ -100,68 +100,24 @@ func (r *RelayPostRepository) GetPost(
 // GetPosts
 func (r *RelayPostRepository) GetPosts(
 	pks []domain.UserPubKey,
-	maxResults int,
-	sinceTime *time.Time,
-	untilTime *time.Time,
+	options domain.PagingOptions,
 ) ([]domain.Post, error) {
 
-	userPKs := lo.Map(pks,
-		func(pk domain.UserPubKey, _ int) string {
-			return string(pk)
-		})
-
-	filter := nostr.Filter{
-		Kinds: []int{1},
-		Limit: maxResults,
-	}
-
-	if len(userPKs) > 0 {
-		filter.Authors = userPKs
-	}
-	if sinceTime != nil {
-		filter.Since = lo.ToPtr(nostr.Timestamp(sinceTime.Unix()))
-	}
-	if untilTime != nil {
-		filter.Until = lo.ToPtr(nostr.Timestamp(untilTime.Unix()))
-	}
-
-	events := QuerySyncAll(
-		context.Background(),
-		[]nostr.Filter{filter},
+	events := GetEventsByAuthor(
+		[]int{nostr.KindTextNote},
+		pks, options,
 	)
-
-	// Distinct public keys
-	pkMap := make(map[string]bool)
-	posts := make([]domain.Post, 0)
-
-	for _, event := range events {
-		if !pkMap[event.Sig] {
-			pkMap[event.Sig] = true
-			post, err := MarshalPostEvent(event)
-			if err != nil {
-				return nil, err
-
-			}
-
-			posts = append(posts, post.ToPost())
-		}
-	}
-
-	return posts, nil
+	return eventsToPosts(events)
 }
 
 // GetPublicPosts
 func (r *RelayPostRepository) GetPublicPosts(
-	maxResults int,
-	sinceTime *time.Time,
-	untilTime *time.Time,
+	options domain.PagingOptions,
 ) ([]domain.Post, error) {
 
 	return r.GetPosts(
 		[]domain.UserPubKey{},
-		maxResults,
-		sinceTime,
-		untilTime,
+		options,
 	)
 }
 
@@ -198,24 +154,7 @@ func (r *RelayPostRepository) GetUserLatestPosts(
 		},
 	)
 
-	// Distinct public keys
-	pkMap := make(map[string]bool)
-	posts := make([]domain.Post, 0)
-
-	for _, event := range events {
-		if !pkMap[event.Sig] {
-			pkMap[event.Sig] = true
-			post, err := MarshalPostEvent(event)
-			if err != nil {
-				return nil, err
-
-			}
-
-			posts = append(posts, post.ToPost())
-		}
-	}
-
-	return posts, nil
+	return eventsToPosts(events)
 }
 
 var getRepliesLimitMap = util.NewLimitMap(1)
@@ -246,6 +185,13 @@ func (r *RelayPostRepository) GetReplies(
 			)
 		},
 	)
+
+	return eventsToPosts(events)
+}
+
+func eventsToPosts(
+	events []*nostr.Event,
+) ([]domain.Post, error) {
 
 	// Distinct public keys
 	pkMap := make(map[string]bool)
